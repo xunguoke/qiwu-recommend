@@ -32,8 +32,12 @@ public class RecommendService {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
 
-        //根据用户需求筛选对应作品
-        return IntentionUtils.mostFavorites(map,semantics);
+        //根据意图调用指定方法返回数据
+        String aa = JudgmentIntention.methodOfChoosing(map, intention, semantics);
+        log.warn("aa",aa);
+
+        //返回封装信息
+        return aa;
 
     }
 }

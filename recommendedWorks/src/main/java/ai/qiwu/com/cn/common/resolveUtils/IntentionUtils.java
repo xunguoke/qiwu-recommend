@@ -5,6 +5,9 @@ import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -14,14 +17,18 @@ import java.util.*;
  * @author hjd
  */
 @Slf4j
+@Service
 public class IntentionUtils {
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 手表推荐之推荐
      * @param map 接口返回数据
+     * @param semantics
      * @return
      */
-    public static String recommend(Map map) {
+    public static String recommenda(Map map, String semantics) {
         //获取返回信息
         String text = "";
         String title="";
@@ -243,11 +250,12 @@ public class IntentionUtils {
 
 
     /**
-     * 手机推荐之最新推荐
+     * 手表推荐之最新推荐
      * @param map 接口返回数据
+     * @param semantics
      * @return
      */
-    public static String latestCreation(Map map) {
+    public static String latestCreation(Map map, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
         String text="";
         String title="";
@@ -679,6 +687,193 @@ public class IntentionUtils {
      * @return
      */
     public static String mostFavorites(Map map, String semantics) {
+
+        //定义一个String类型的变量用于存储筛选的游戏
+        String text="";
+        String title="";
+        String name = "";
+        //创建一个集合用于存储游戏名，游戏编号
+        HashMap<String, String> gameNumber = new HashMap<>();
+        //创建一个集合用于存储游戏名，游戏收藏人数
+        HashMap<String, Integer> gameRating = new HashMap<>();
+
+        //获取works将map转对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        List<WorksPojo> works = dataResponse.getWorks();
+
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            //获取作品收藏人数
+            int plotCount = work.getPlotCount();
+            //获取游戏名
+            String gameName =  work.getName();
+            log.warn("gameName:{}",gameName);
+            //获取游戏编号
+            String botAccount = work.getBotAccount();
+            log.warn("botAccount:{}",botAccount);
+            //存入游戏编号集合
+            gameNumber.put(gameName, botAccount);
+            //存入游戏评分集合
+            gameRating.put(gameName, plotCount);
+
+        }
+
+
+        //将游戏按照评分降序排序
+        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(gameRating.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i=0;i<list.size();i++){
+            //判断是否是最后
+            if(i==2){
+                //获取游戏名
+                String gameName2 = list.get(i).getKey();
+                //获取游戏名编号
+                String number2 = gameNumber.get(gameName2);
+                text+=number2+"+"+gameName2;
+                title+="《"+gameName2+"》,你可以说：打开某作品";
+                String recommendText ="☛推荐"+text+"☚";
+                String recommendName="为您推荐以上收藏最多的作品："+title;
+                return TypeRecommendation.packageResult(recommendName,recommendText);
+            }
+
+            //获取游戏名
+            String gameName2 = list.get(i).getKey();
+            //获取收费游戏名编号
+            String number2 = gameNumber.get(gameName2);
+            text+=number2+"+"+gameName2+",";
+            title+="《"+gameName2+"》,";
+
+        }
         return null;
+    }
+
+    /**
+     * 手表推荐值作品简介查询
+     * @param map
+     * @param semantics
+     * @return
+     */
+    public static String introduction(Map map, String semantics) {
+        //获取works将map转对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        List<WorksPojo> works = dataResponse.getWorks();
+
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            String name = work.getName();
+            if(name.equals(semantics)){
+                String intro = work.getIntro();
+                String recommendText ="";
+                String recommendName=name+"的作品简介："+intro;
+                return TypeRecommendation.packageResult(recommendName,recommendText);
+            }
+
+        }
+        return null;
+    }
+
+    /**
+     * 手表推荐之系列推荐
+     * @param map
+     * @param semantics
+     * @return
+     */
+    public static String seriesRecommendation(Map map, String semantics) {
+        //定义一个String类型的变量用于存储筛选的游戏
+        String text="";
+        String title="";
+        //创建一个集合用于存储游戏名，游戏编号
+        HashMap<String, String> gameNumber = new HashMap<>();
+        //创建一个集合用于存储游戏名，游戏评分
+        HashMap<String, Double> gameRating = new HashMap<>();
+
+        //获取works将map转对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        List<WorksPojo> works = dataResponse.getWorks();
+
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            //获取类型列表
+            List<String> labels = work.getLabels();
+            for (String label : labels) {
+                if(label.equals(semantics)){
+                    //如果该作品属于该类型
+                    //获取游戏名
+                    String gameName =  work.getName();
+                    log.warn("gameName:{}",gameName);
+                    //获取游戏分数
+                    Double fraction = work.getScore();
+                    log.warn("fraction:{}",fraction);
+                    //获取游戏编号
+                    String botAccount = work.getBotAccount();
+                    log.warn("botAccount:{}",botAccount);
+                    //存入游戏编号集合
+                    gameNumber.put(gameName, botAccount);
+                    //存入游戏评分集合
+                    gameRating.put(gameName, fraction);
+                }
+            }
+        }
+
+        //将游戏按照评分降序排序
+        List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
+            @Override
+            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i=0;i<list.size();i++){
+            //判断是否是最后
+            if(i==list.size()-1){
+                //获取游戏名
+                String gameName2 = list.get(i).getKey();
+                //获取收费游戏名编号
+                String number2 = gameNumber.get(gameName2);
+                text+=number2+"+"+gameName2;
+                title+="《"+gameName2+"》,你可以说：打开某作品";
+                String recommendText ="☛推荐"+text+"☚";
+                String recommendName="为您推荐以上作品："+title;
+                return TypeRecommendation.packageResult(recommendName,recommendText);
+            }
+
+            //获取游戏名
+            String gameName2 = list.get(i).getKey();
+            //获取游戏名编号
+            String number2 = gameNumber.get(gameName2);
+            text+=number2+"+"+gameName2+",";
+            title+="《"+gameName2+"》,";
+
+        }
+        return null;
+    }
+
+    /**
+     * 手表推荐之类型
+     * @param map
+     * @param semantics
+     * @return
+     */
+    public static String type(Map map, String semantics) {
+        //定义一个String类型的变量用于存储筛选的游戏
+        String text="";
+        String title="";
+
+        //获取works将map转对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        List<String> labels = dataResponse.getLabels();
+
+        //循环遍历所有类型
+        return null;
+
     }
 }
