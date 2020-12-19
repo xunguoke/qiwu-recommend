@@ -76,4 +76,8 @@ public class ExtractUtils {
 
     }
 
+
+    //剩下
+    String i="";
+
 }
