@@ -6,6 +6,7 @@ import java.util.*;
 
 public class text {
     public static void main(String[] args) {
+/*
 
         Order o1 = new Order("2018-01-01",1234567890,3.14);
         Order o2 = new Order("2018-01-02",1234567891,3.14);
@@ -80,19 +81,20 @@ public class text {
             this.money = money;
         }
     }
+*/
 
 
-       /* List<String> listA_01 = new ArrayList<String>(){{
+        List<String> listA_01 = new ArrayList<String>() {{
             add("A");
             add("B");
         }};
-        List<String> listB_01 = new ArrayList<String>(){{
+        List<String> listB_01 = new ArrayList<String>() {{
             add("B");
             add("C");
         }};
         boolean b = listB_01.retainAll(listA_01);
-        System.out.println(listA_01); // 结果:[B]
-        System.out.println(b); // 结果:[B, C]*/
+        System.out.println(listB_01); // 结果:[B]
+        System.out.println(b); // 结果:[B, C]
 /*        String aa = "2020-12-11T12:26:57.000+0000";
         System.out.println(dealDateFormat(aa));*/
 
@@ -120,7 +122,7 @@ public class text {
             String key = infoIds.get(i).getKey();
             System.out.println(key);
         }*/
-    }
+
 
 
 /*    public static String dealDateFormat(String oldDate) {
@@ -138,3 +140,5 @@ public class text {
         }
         return df2.format(date1);
     }*/
+    }
+}

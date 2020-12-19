@@ -3,6 +3,8 @@ package ai.qiwu.com.cn.pojo.connectorPojo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * 用户意图pojo
  * @author hjd
@@ -22,4 +24,13 @@ public class IntentionRequest {
      * 语义
      */
     private String works;
+
+    /**
+     * 渠道ID
+     */
+    private String channelId;
+    /**
+     * 用户ID
+     */
+    private String uid;
 }

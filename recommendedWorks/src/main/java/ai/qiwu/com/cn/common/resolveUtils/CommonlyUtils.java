@@ -2,6 +2,7 @@ package ai.qiwu.com.cn.common.resolveUtils;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
@@ -15,11 +16,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+
 /**
  * 用于解析请求
  * @author hjd
  */
 @Slf4j
+@Service
 public class CommonlyUtils {
 
     /**

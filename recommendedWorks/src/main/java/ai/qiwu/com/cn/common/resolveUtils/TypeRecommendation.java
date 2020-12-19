@@ -1,13 +1,18 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
 import ai.qiwu.com.cn.common.FixedVariable.RwConstant;
+import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.pojo.connectorPojo.RequestPojo.Data;
 import ai.qiwu.com.cn.pojo.connectorPojo.RequestPojo.Radical;
+import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.BotConfig;
+import ai.qiwu.com.cn.service.handleService.WatchService;
 import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -21,7 +26,9 @@ import java.util.Map;
  * @author hjd
  */
 @Slf4j
+@Service
 public class TypeRecommendation {
+
 
     /**
      * 获取类型推荐
@@ -32,6 +39,10 @@ public class TypeRecommendation {
         //解析请求
         Map map = CommonlyUtils.parsingRequest(request);
         //获取指定件所对应的值
+        String channelId = (String) map.get("channelId");
+        log.warn("渠道ID:{}",channelId);
+        String uid = (String) map.get("uid");
+        log.warn("用户ID:{}",uid);
         String chatKey = (String) map.get("chatKey");
         Map vars = (Map) map.get("vars");
         String intention = (String) vars.get("手表推荐之推荐意图");
@@ -39,11 +50,16 @@ public class TypeRecommendation {
         String works = (String) vars.get(intention);
         log.warn("手表推荐:{}",works);
 
+
+
+
         //将请求信息封装在对象中
         IntentionRequest intentionRequest=new IntentionRequest();
         intentionRequest.setWorks(works);
         intentionRequest.setIntention(intention);
         intentionRequest.setChatKey(chatKey);
+        intentionRequest.setChannelId(channelId);
+        intentionRequest.setUid(uid);
 
         return intentionRequest;
 
@@ -148,5 +164,71 @@ public class TypeRecommendation {
         String s = JSON.toJSONString(radical);
         log.warn("返回信息:{}",s);
         return s;
+    }
+
+    /**
+     * 判断渠道id在数中是否存在
+     * @param intent
+     * @param watchService
+     * @return
+     */
+    public static List<Watch> channelJudgment(IntentionRequest intent, WatchService watchService) {
+        String channelId = intent.getChannelId();
+        //数据库中查询渠道ID
+        List<Watch> channelIds = watchService.findByChannelId(channelId);
+        log.warn("channelIds:{}",channelIds);
+        return channelIds;
+    }
+
+
+    /**
+     * 请求bot配置接口将接口返回数据转换成map
+     * @return
+     */
+    public static List<BotConfig> getBotConfig(){
+        /**
+         * 1.将意图封装在意图对象中
+         * 2.发送请求
+         * 3.将请求返回只转换成String
+         * 4.获取与关键字相匹配的数据返回
+         */
+
+        //定义一个map集合用于存储json数据
+        Map map = new HashMap<>();
+        List<BotConfig> list = new ArrayList<>();
+        Gson gson=new Gson();
+
+
+        //请求路径带上参数
+        String url=RwConstant.UrlInterface.QI_WU_BOTCONFIG;
+
+        //发送请求
+        OkHttpClient client = new OkHttpClient();
+        //MediaType.parse()解析出MediaType对象;
+        Request request = new Request.Builder()
+                .url(url)
+                .build();
+        //接口返回的消息(推荐作品)
+        Response response = null;
+        try {
+            response = client.newCall(request).execute();
+        } catch (IOException e) {
+            log.warn("推荐作品接口返回数据有误:",e.toString());
+            e.printStackTrace();
+        }
+
+        String responseJson = null;
+        try (ResponseBody body = response.body()){
+            responseJson = body.string();
+            //log.info("设备接口返回数据,{}", responseJson);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //将String数据转换成map
+
+        List<BotConfig> botConfigList = gson.fromJson(responseJson, new TypeToken<List<BotConfig>>(){}.getType());
+        //log.warn("botConfigList:{}",botConfigList.size());
+        return botConfigList;
     }
 }

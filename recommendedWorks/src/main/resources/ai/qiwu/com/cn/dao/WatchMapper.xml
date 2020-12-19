@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ai.qiwu.com.cn.dao.WatchMapper">
+    <!--根据渠道id查询-->
+    <select id="findByChannelId" resultType="ai.qiwu.com.cn.pojo.Watch">
+        SELECT * FROM work_evaluate_tb
+        WHERE app_channel_id = #{channelId} AND online = #{1}
+    </select>
+</mapper>
