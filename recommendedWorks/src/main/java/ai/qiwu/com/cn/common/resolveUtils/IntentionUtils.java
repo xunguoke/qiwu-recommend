@@ -207,7 +207,7 @@ public class IntentionUtils {
      * 手表推荐之类型推荐
      * @return
      */
-    public static String typeRecommendation(DataResponse dataResponse,String semantics) {
+    public static String typeRecommendation(String channelId, DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
         String text="";
         String title="";
@@ -230,6 +230,32 @@ public class IntentionUtils {
             String recommendName="暂无"+semantics+"类型的作品，要不试试其他类型吧";
             return TypeRecommendation.packageResult(recommendName,recommendText);
         }
+
+        //循环渠道设备
+        for (BotConfig config : botConfig) {
+            //获取渠道id
+            String recommendBotAccount = config.getRecommendBotAccount();
+           //判断渠道id
+            if (recommendBotAccount.equals(channelId)){
+                //获取禁用标签
+                String labelBlacklist = config.getLabelBlacklist();
+                //去除空格
+                String replace = labelBlacklist.replace(" ", "");
+                //根据中文或英文逗号进行分割
+                String regex = ",|，";
+                String[] blacklist = replace.split(regex);
+                List<String> asList = Arrays.asList(blacklist);
+                for (String s : asList) {
+                    if (s.equals(semantics)){
+                        String recommendText ="暂无"+semantics+"类型的作品，要不试试其他类型吧";
+                        String recommendName="暂无"+semantics+"类型的作品，要不试试其他类型吧";
+                        return TypeRecommendation.packageResult(recommendName,recommendText);
+                    }
+                }
+            }
+        }
+
+
 
         //循环所有作品，
         for (WorksPojo work : works) {
@@ -1298,5 +1324,18 @@ public class IntentionUtils {
                 return TypeRecommendation.packageResult(recommendName,recommendText);
             }
         }
+    }
+
+    /**
+     * 手表推荐之作者推荐
+     * @param dataResponse
+     * @param semantics
+     * @param uid
+     * @param redisTemplate
+     * @return
+     */
+    public static String recommendedWorks(DataResponse dataResponse, String semantics, String uid, RedisTemplate redisTemplate) {
+
+        return null;
     }
 }

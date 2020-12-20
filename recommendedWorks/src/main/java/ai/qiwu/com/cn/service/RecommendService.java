@@ -45,6 +45,10 @@ public class RecommendService {
         //3.查询数据库中渠道id相同的
         List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
         log.warn("渠道数据:{}",intention);
+
+        //4.根据渠道ID查询禁用标签
+        List<String> labelBlacklist = TypeRecommendation.disableLabel(channelId);
+
         //4.调用方法返回数据
         String works = ExtractUtils.intersectionWorks(channelId,watches, map, intention, semantics,uid,redisTemplate);
 

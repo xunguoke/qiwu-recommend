@@ -32,7 +32,7 @@ public class JudgmentIntention {
             log.warn("到这里");
             return IntentionUtils.recommenda(dataResponse, semantics);
         }else if(intention.equals("手表推荐之类型推荐")){
-            return IntentionUtils.typeRecommendation(dataResponse,semantics);
+            return IntentionUtils.typeRecommendation(channelId,dataResponse,semantics);
         }else if(intention.equals("手表推荐之最新推荐")){
             return IntentionUtils.latestCreation(dataResponse,semantics);
         }else if(intention.equals("手表推荐之类似作品推荐")){
@@ -56,10 +56,11 @@ public class JudgmentIntention {
         }else if(intention.equals("手表推荐之类型")){
                 return IntentionUtils.type(channelId,dataResponse,semantics,uid,redisTemplate);
         }else if(intention.equals("手表推荐之系列查询")){
-            log.warn("到这里");
             return IntentionUtils.seriesQuery(channelId,dataResponse,semantics,uid,redisTemplate);
-        }else {
-            log.warn("到这里2");
+        }else if(intention.equals("手表推荐之作者推荐")){
+            return IntentionUtils.recommendedWorks(dataResponse,semantics,uid,redisTemplate);
+        }else{
+            log.warn("没有查询到合适的意图");
             return null;
         }
 
