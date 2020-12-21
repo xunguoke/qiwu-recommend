@@ -24,15 +24,16 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之推荐
+     *
      * @param semantics
      * @return
      */
     public static String recommenda(DataResponse dataResponse, String semantics) {
         //获取返回信息
         String text = "";
-        String title="";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
 
         //创建一个集合用于存储排序后的游戏名和编号
         HashMap<String, String> game = new HashMap<>();
@@ -48,10 +49,10 @@ public class IntentionUtils {
         List<WorksPojo> works = dataResponse.getWorks();
 
         //判断是否有作品
-        if(works.size()<=0){
-            String recommendText ="暂无作品！";
-            String recommendName="暂无作品！";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无作品！";
+            String recommendName = "暂无作品！";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         for (WorksPojo work : works) {
@@ -60,7 +61,7 @@ public class IntentionUtils {
             for (String s : synopsis) {
                 if (s.equals("New") || s.equals("免费")) {
                     //获取游戏名
-                    String gameName =  work.getName();
+                    String gameName = work.getName();
                     //获取游戏分数
                     Double fraction = work.getScore();
                     //获取游戏编号
@@ -71,11 +72,11 @@ public class IntentionUtils {
                     gameFree.put(gameName, fraction);
                 } else if (s.equals("VIP") || s.equals("付费")) {
                     //获取游戏名
-                    String gameName =  work.getName();
+                    String gameName = work.getName();
                     //获取游戏分数
-                    Double fraction =  work.getScore();
+                    Double fraction = work.getScore();
                     //获取游戏编号
-                    String botAccount =  work.getBotAccount();
+                    String botAccount = work.getBotAccount();
                     //存入收费游戏编号集合
                     paidGameNumber.put(gameName, botAccount);
                     //存入收费游戏集合
@@ -102,100 +103,117 @@ public class IntentionUtils {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-        log.warn("list:{}",list);
-        log.warn("list2:{}",list2);
+        log.warn("list:{}", list);
+        log.warn("list2:{}", list2);
 
         //判断集合长度
-        if(list.size()>list2.size()){
-            for(int i=0;i<list.size();i++){
+        if (list.size() > list2.size()) {
+            for (int i = 0; i < list.size(); i++) {
 
                 //判断是否最后
-                if(i==list.size()-1){
+                if (i == list.size() - 1) {
                     //获取免费游戏名
                     String freeName = list.get(i).getKey();
                     //获取免费游戏名编号
                     String number = freeGameNumber.get(freeName);
-                    text+=number+"+"+freeName;
+                    text += number + "+" + freeName;
 
                     titleList.add(freeName);
 
-                    if(titleList.size()>3){
-                        for(int j=0;j<3;j++){
-                            titleText+="《"+titleList.get(j)+"》，";
+                    if (titleList.size() >= 3) {
+                        for (int j = 0; j < 3; j++) {
+
+                            if (j == 2) {
+                                titleText += "《" + titleList.get(j) + "》，";
+                            }else {
+                                titleText += "《" + titleList.get(j) + "》、";
+                            }
                         }
-                    }else{
-                        for (int y=0;y<titleList.size();y++){
-                            titleText+="《"+titleList.get(y)+"》，";
+                    } else {
+                        for (int y = 0; y < titleList.size(); y++) {
+                            if (y == titleList.size() - 1) {
+                                titleText += "《" + titleList.get(y) + "》，";
+                            }else {
+                                titleText += "《" + titleList.get(y) + "》、";
+                            }
                         }
                     }
-                    game.put(freeName,number);
-                    String recommendText ="☛推荐"+text+"☚";
-                    String recommendName="为您推荐以上作品："+titleText+"你可以说：打开"+titleList.get(0);
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                    game.put(freeName, number);
+                    String recommendText = "☛推荐" + text + "☚";
+                    String recommendName = "为您推荐以上作品：" + titleText + "你可以说：打开" + titleList.get(0);
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
 
                 //获取免费游戏名
                 String freeName = list.get(i).getKey();
                 //获取免费游戏名编号
                 String number = freeGameNumber.get(freeName);
-                text+=number+"+"+freeName+",";
+                text += number + "+" + freeName + ",";
                 titleList.add(freeName);
-                game.put(freeName,number);
-                if(list2.size()>i){
+                game.put(freeName, number);
+                if (list2.size() > i) {
                     //获取收费游戏名
                     String freeGameName2 = list2.get(i).getKey();
                     //获取收费游戏名编号
                     String number2 = paidGameNumber.get(freeGameName2);
-                    text+=number2+"+"+freeGameName2+",";
+                    text += number2 + "+" + freeGameName2 + ",";
                     titleList.add(freeGameName2);
-                    game.put(freeGameName2,number2);
+                    game.put(freeGameName2, number2);
                 }
             }
-        }else{
-            for(int i=0;i<list2.size();i++){
+        } else {
+            for (int i = 0; i < list2.size(); i++) {
 
 
-                if(list.size()>=i){
+                if (list.size() >= i) {
                     //获取免费游戏名
                     String freeName = list.get(i).getKey();
                     //获取免费游戏名编号
                     String number = freeGameNumber.get(freeName);
-                    text+=number+"+"+freeName+",";
-                    title="《"+freeName+"》,";
-                    titleList.add(title);
-                    game.put(freeName,number);
+                    text += number + "+" + freeName + ",";
+                    titleList.add(freeName);
+                    game.put(freeName, number);
                 }
-                if(i==list2.size()-1){
+                if (i == list2.size() - 1) {
                     //获取收费游戏名
                     String freeGameName2 = list.get(i).getKey();
                     //获取收费游戏名编号
                     String number2 = paidGameNumber.get(freeGameName2);
-                    text+=number2+"+"+freeGameName2;
+                    text += number2 + "+" + freeGameName2;
 
                     titleList.add(freeGameName2);
 
-                    if(titleList.size()>3){
-                        for(int j=0;j<3;j++){
-                            titleText+="《"+titleList.get(j)+"》";
+                    if (titleList.size() >= 3) {
+                        for (int j = 0; j < 3; j++) {
+
+                            if (j == 2) {
+                                titleText += "《" + titleList.get(j) + "》，";
+                            }else {
+                                titleText += "《" + titleList.get(j) + "》、";
+                            }
                         }
-                    }else{
-                        for (int y=0;y<titleList.size();y++){
-                            titleText+="《"+titleList.get(y)+"》";
+                    } else {
+                        for (int y = 0; y < titleList.size(); y++) {
+                            if (y == titleList.size() - 1) {
+                                titleText += "《" + titleList.get(y) + "》，";
+                            }else {
+                                titleText += "《" + titleList.get(y) + "》、";
+                            }
                         }
                     }
-                    game.put(freeGameName2,number2);
-                    String recommendText ="☛推荐"+text+"☚";
-                    String recommendName="为您推荐以上作品："+titleText+"你可以说：打开"+titleList.get(0);
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                    game.put(freeGameName2, number2);
+                    String recommendText = "☛推荐" + text + "☚";
+                    String recommendName = "为您推荐以上作品：" + titleText + "你可以说：打开" + titleList.get(0);
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
                 //获取收费游戏名
                 String freeGameName2 = list2.get(i).getKey();
                 //获取收费游戏名编号
                 String number2 = paidGameNumber.get(freeGameName2);
-                text+=number2+"+"+freeGameName2+",";
+                text += number2 + "+" + freeGameName2 + ",";
 
                 titleList.add(freeGameName2);
-                game.put(freeGameName2,number2);
+                game.put(freeGameName2, number2);
             }
         }
 
@@ -205,14 +223,15 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之类型推荐
+     *
      * @return
      */
     public static String typeRecommendation(String channelId, DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏评分
@@ -225,18 +244,18 @@ public class IntentionUtils {
         List<BotConfig> botConfig = TypeRecommendation.getBotConfig();
 
         //判断是否有作品
-        if(works.size()<=0){
-            String recommendText ="暂无"+semantics+"类型的作品，要不试试其他类型吧";
-            String recommendName="暂无"+semantics+"类型的作品，要不试试其他类型吧";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无" + semantics + "类型的作品，要不试试其他类型吧";
+            String recommendName = "暂无" + semantics + "类型的作品，要不试试其他类型吧";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         //循环渠道设备
         for (BotConfig config : botConfig) {
             //获取渠道id
             String recommendBotAccount = config.getRecommendBotAccount();
-           //判断渠道id
-            if (recommendBotAccount.equals(channelId)){
+            //判断渠道id
+            if (recommendBotAccount.equals(channelId)) {
                 //获取禁用标签
                 String labelBlacklist = config.getLabelBlacklist();
                 //去除空格
@@ -246,15 +265,14 @@ public class IntentionUtils {
                 String[] blacklist = replace.split(regex);
                 List<String> asList = Arrays.asList(blacklist);
                 for (String s : asList) {
-                    if (s.equals(semantics)){
-                        String recommendText ="暂无"+semantics+"类型的作品，要不试试其他类型吧";
-                        String recommendName="暂无"+semantics+"类型的作品，要不试试其他类型吧";
-                        return TypeRecommendation.packageResult(recommendName,recommendText);
+                    if (s.equals(semantics)) {
+                        String recommendText = "暂无" + semantics + "类型的作品，要不试试其他类型吧";
+                        String recommendName = "暂无" + semantics + "类型的作品，要不试试其他类型吧";
+                        return TypeRecommendation.packageResult(recommendName, recommendText);
                     }
                 }
             }
         }
-
 
 
         //循环所有作品，
@@ -262,17 +280,17 @@ public class IntentionUtils {
             //获取类型列表
             List<String> labels = work.getLabels();
             for (String label : labels) {
-                if(label.equals(semantics)){
+                if (label.equals(semantics)) {
                     //如果该作品属于该类型
                     //获取游戏名
-                    String gameName =  work.getName();
-                    log.warn("gameName:{}",gameName);
+                    String gameName = work.getName();
+                    log.warn("gameName:{}", gameName);
                     //获取游戏分数
                     Double fraction = work.getScore();
-                    log.warn("fraction:{}",fraction);
+                    log.warn("fraction:{}", fraction);
                     //获取游戏编号
                     String botAccount = work.getBotAccount();
-                    log.warn("botAccount:{}",botAccount);
+                    log.warn("botAccount:{}", botAccount);
                     //存入游戏编号集合
                     gameNumber.put(gameName, botAccount);
                     //存入游戏评分集合
@@ -291,36 +309,45 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==list.size()-1){
+            if (i == list.size() - 1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取收费游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
 
                 titleList.add(gameName2);
 
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》，";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》，";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您推荐以上"+semantics+"类型作品："+titleText+"你可以说：打开"+titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您推荐以上" + semantics + "类型作品：" + titleText + "你可以说：打开" + titleList.get(0);
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取收费游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
 
             titleList.add(gameName2);
 
@@ -331,15 +358,16 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之最新推荐
+     *
      * @param semantics
      * @return
      */
     public static String latestCreation(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏上线时间
@@ -349,16 +377,16 @@ public class IntentionUtils {
         List<WorksPojo> works = dataResponse.getWorks();
 
         //判断是否有作品
-        if(works.size()<=0){
-            String recommendText ="暂无作品！";
-            String recommendName="暂无作品！";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无作品！";
+            String recommendName = "暂无作品！";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取游戏名
-            String gameName =  work.getName();
+            String gameName = work.getName();
             //获取游戏上线时间
             String gmtApply = work.getGmtApply();
             //将时间转换成指定格式
@@ -382,35 +410,44 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==list.size()-1){
+            if (i == list.size() - 1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取收费游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
 
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》，";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》，";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您推荐以上最新的作品："+titleText+"快对我说：打开"+titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您推荐以上最新的作品：" + titleText + "快对我说：打开" + titleList.get(0);
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
             titleList.add(gameName2);
 
         }
@@ -420,6 +457,7 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之类似作品推荐
+     *
      * @param semantics 语义
      * @return
      */
@@ -429,10 +467,10 @@ public class IntentionUtils {
         //用于存储用户说的作品类型列表
         List<String> typeList = null;
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
 
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
@@ -440,9 +478,9 @@ public class IntentionUtils {
         //获取作品类型列表
         for (WorksPojo work : works) {
             //获取游戏名
-            String gameName1 =  work.getName();
+            String gameName1 = work.getName();
             //判断游戏名是否和语义相同
-            if(gameName1.equals(semantics)){
+            if (gameName1.equals(semantics)) {
                 //获取类型列表
                 typeList = work.getLabels();
             }
@@ -451,22 +489,22 @@ public class IntentionUtils {
         //获取相似作品
         for (WorksPojo work : works) {
             //获取游戏名
-            String gameName =  work.getName();
-            log.warn("gameName2:{}",gameName);
-            if(!gameName.equals(semantics)){
+            String gameName = work.getName();
+            log.warn("gameName2:{}", gameName);
+            if (!gameName.equals(semantics)) {
                 //获取游戏分数
                 Double fraction = work.getScore();
-                log.warn("fraction:{}",fraction);
+                log.warn("fraction:{}", fraction);
                 //获取游戏编号
                 String botAccount = work.getBotAccount();
-                log.warn("botAccount:{}",botAccount);
+                log.warn("botAccount:{}", botAccount);
                 //获取类型列表
                 List<String> labels = work.getLabels();
                 labels.retainAll(typeList);
                 //判断有相同标签才存入集合
                 int size = labels.size();
-                log.warn("size:{}",size);
-                if (size>0){
+                log.warn("size:{}", size);
+                if (size > 0) {
                     //创建对象传入参数
                     WorkInformation information = new WorkInformation(gameName, botAccount, fraction, size);
                     listWork.add(information);
@@ -474,10 +512,10 @@ public class IntentionUtils {
 
             }
         }
-        if(listWork.size()<=0){
-            String recommendText ="对不起，暂时没有和《"+semantics+"》相似的作品";
-            String recommendName="对不起，暂时没有和《"+semantics+"》相似的作品";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (listWork.size() <= 0) {
+            String recommendText = "对不起，暂时没有和《" + semantics + "》相似的作品";
+            String recommendName = "对不起，暂时没有和《" + semantics + "》相似的作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         //循环集合按照Size倒序排序，size相同时按照评分倒序
@@ -489,8 +527,8 @@ public class IntentionUtils {
 
                 int temp = s2.compareTo(s1);
 
-                if(temp != 0){
-                    return  temp;
+                if (temp != 0) {
+                    return temp;
                 }
 
                 double m1 = o1.getFraction();
@@ -504,35 +542,44 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<listWork.size();i++){
+        for (int i = 0; i < listWork.size(); i++) {
             //判断是否是最后
-            if(i==listWork.size()-1){
+            if (i == listWork.size() - 1) {
                 //获取游戏名
                 String gameName2 = listWork.get(i).getGameName();
                 //获取收费游戏名编号
                 String number2 = listWork.get(i).getBotAccount();
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
 
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》，";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》，";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您找到和《"+semantics+"》类似的作品："+titleText+"快对我说：打开"+titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您找到和《" + semantics + "》类似的作品：" + titleText + "快对我说：打开" + titleList.get(0);
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = listWork.get(i).getGameName();
             //获取收费游戏名编号
             String number2 = listWork.get(i).getBotAccount();
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
             titleList.add(gameName2);
         }
         return null;
@@ -540,15 +587,16 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之某作者的作品推荐
+     *
      * @param semantics 语义
      * @return
      */
     public static String authorWorks(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏评分
@@ -561,16 +609,16 @@ public class IntentionUtils {
         for (WorksPojo work : works) {
             //获取作者名字
             String authorName = work.getAuthorName();
-            if (authorName.equals(semantics)){
+            if (authorName.equals(semantics)) {
                 //获取游戏名
-                String gameName =  work.getName();
-                log.warn("gameName:{}",gameName);
+                String gameName = work.getName();
+                log.warn("gameName:{}", gameName);
                 //获取游戏分数
                 Double fraction = work.getScore();
-                log.warn("fraction:{}",fraction);
+                log.warn("fraction:{}", fraction);
                 //获取游戏编号
                 String botAccount = work.getBotAccount();
-                log.warn("botAccount:{}",botAccount);
+                log.warn("botAccount:{}", botAccount);
                 //存入游戏编号集合
                 gameNumber.put(gameName, botAccount);
                 //存入游戏评分集合
@@ -588,42 +636,51 @@ public class IntentionUtils {
             }
         });
 
-        if(list.size()<=0){
-            String recommendText ="对不起，暂时没有"+semantics+"的作品";
-            String recommendName="对不起，暂时没有"+semantics+"的作品";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (list.size() <= 0) {
+            String recommendText = "对不起，暂时没有" + semantics + "的作品";
+            String recommendName = "对不起，暂时没有" + semantics + "的作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==list.size()-1){
+            if (i == list.size() - 1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
 
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》,";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》,";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您找到"+semantics+"的作品："+titleText+"快对我说：打开"+titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您找到" + semantics + "的作品：" + titleText + "快对我说：打开" + titleList.get(0);
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取收费游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
             titleList.add(gameName2);
 
         }
@@ -632,73 +689,79 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作品类型查询
+     *
      * @param semantics 语义
      * @return
      */
     public static String typeOfWork(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
         String title = "";
-        //表示没有该作品
-        Boolean zp=false;
+        List<String> jy = new ArrayList<>();
+        jy.add("New");
+        jy.add("VIP");
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
 
         //调用接口获取设备中的数据
         List<BotConfig> botConfig = TypeRecommendation.getBotConfig();
 
-            //循环所有作品
-            for (WorksPojo work : works) {
-                //获取游戏名
-                String gameName = work.getName();
-                //获取作品类型
-                List<String> labels = work.getLabels();
-                //判断是否是用户所说的作品
-                if (gameName.equals(semantics)) {
-                    //循环所有设备
-                    for (BotConfig config : botConfig) {
-                        //获取渠道id
-                        String recommendBotAccount = config.getRecommendBotAccount();
-                        //获取作品渠道id
-                        String botAccount = work.getBotAccount();
-                        //判断作品渠道id是否等于设备渠道id
-                        if (botAccount.equals(recommendBotAccount)) {
-                            //获取禁用标签
-                            String labelBlacklist = config.getLabelBlacklist();
-                            //去除空格
-                            String replace = labelBlacklist.replace(" ", "");
-                            //根据中文或英文逗号进行分割
-                            String regex = ",|，";
-                            String[] blacklist = replace.split(regex);
-                            List<String> asList = Arrays.asList(blacklist);
-                            labels.removeAll(asList);
-                            if(labels.size()>0){
-                                for (int x=0;x<labels.size();x++) {
-                                    if(x==labels.size()){
-                                        title+=labels.get(x);
-                                    }
-                                    title+=labels.get(x)+",";
+        //循环所有作品
+        for (WorksPojo work : works) {
+            //获取游戏名
+            String gameName = work.getName();
+            //获取作品类型
+            List<String> labels = work.getLabels();
+            labels.removeAll(jy);
+            //判断是否是用户所说的作品
+            if (gameName.equals(semantics)) {
+                //循环所有设备
+                for (BotConfig config : botConfig) {
+                    //获取渠道id
+                    String recommendBotAccount = config.getRecommendBotAccount();
+                    //获取作品渠道id
+                    String botAccount = work.getBotAccount();
+                    //判断作品渠道id是否等于设备渠道id
+                    if (botAccount.equals(recommendBotAccount)) {
+                        //获取禁用标签
+                        String labelBlacklist = config.getLabelBlacklist();
+                        //去除空格
+                        String replace = labelBlacklist.replace(" ", "");
+                        //根据中文或英文逗号进行分割
+                        String regex = ",|，";
+                        String[] blacklist = replace.split(regex);
+                        List<String> asList = Arrays.asList(blacklist);
+                        labels.removeAll(asList);
+                        if (labels.size() > 0) {
+                            for (int x = 0; x < labels.size(); x++) {
+                                if (x == labels.size()-1) {
+                                    title += labels.get(x);
+                                }else {
+                                    title += labels.get(x) + ",";
                                 }
-                                String recommendText = "";
-                                String recommendName = "清新传没有作品类型哦";
-                                return TypeRecommendation.packageResult(recommendName, recommendText);
                             }
+                            String recommendText = "";
+                            String recommendName = "清新传没有作品类型哦";
+                            return TypeRecommendation.packageResult(recommendName, recommendText);
                         }
                     }
-                    if(labels.size()>0) {
-                        for (int x = 0; x < labels.size(); x++) {
-                            if (x == labels.size()) {
-                                title += labels.get(x);
-                            }
-                            title += labels.get(x) + ",";
+                }
+                if (labels.size() > 0) {
+                    for (int x = 0; x < labels.size(); x++) {
+                        if (x == labels.size()-1) {
+                            title += labels.get(x);
+                        }else {
+                            title += labels.get(x) + "、";
                         }
-                    }
-                        String recommendText = "";
-                        String recommendName = gameName + "的类型是：" + title;
-                        return TypeRecommendation.packageResult(recommendName, recommendText);
-                    }
 
-
+                    }
+                }
+                String recommendText = "";
+                String recommendName = gameName + "的类型是：" + title;
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
+
+
+        }
 
         String recommendText = "";
         String recommendName = "没有清新传这个作品";
@@ -708,68 +771,70 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作者查询
+     *
      * @param semantics 语义
      * @return
      */
     public static String authorQuery(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
 
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取游戏名
-            String gameName =  work.getName();
-            if (gameName.equals(semantics)){
+            String gameName = work.getName();
+            if (gameName.equals(semantics)) {
                 //获取作者名字
                 String authorName = work.getAuthorName();
-                if(authorName==""||authorName==null){
-                    String recommendText ="";
-                    String recommendName="对不起，暂时没有"+semantics+"的作者信息";
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                if (authorName == "" || authorName == null) {
+                    String recommendText = "";
+                    String recommendName = "对不起，暂时没有" + semantics + "的作者信息";
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
-                String recommendText ="";
-                String recommendName=gameName+"的作者是："+authorName;
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "";
+                String recommendName = gameName + "的作者是：" + authorName;
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
         }
-        String recommendText =semantics+"";
-        String recommendName=semantics+"没有"+semantics+"这个作品";
-        return TypeRecommendation.packageResult(recommendName,recommendText);
+        String recommendText = semantics + "";
+        String recommendName = semantics + "没有" + semantics + "这个作品";
+        return TypeRecommendation.packageResult(recommendName, recommendText);
     }
 
     /**
      * 手表推荐之作品编号查询
+     *
      * @param semantics 语义
      * @return
      */
     public static String workNumber(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
 
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取游戏名
-            String gameName =  work.getName();
-            if (gameName.equals(semantics)){
+            String gameName = work.getName();
+            if (gameName.equals(semantics)) {
                 String botAccount = work.getBotAccount();
-                if(botAccount.equals("")||botAccount==null){
-                    String recommendText ="";
-                    String recommendName="无作品编号";
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                if (botAccount.equals("") || botAccount == null) {
+                    String recommendText = "";
+                    String recommendName = "无作品编号";
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
-                String recommendText ="";
-                String recommendName=botAccount;
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "";
+                String recommendName = botAccount;
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
         }
         return null;
@@ -777,16 +842,17 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之人群推荐
+     *
      * @param semantics 语义
      * @return
      */
     public static String crowdRecommendation(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         String name = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏评分
@@ -799,18 +865,18 @@ public class IntentionUtils {
         for (WorksPojo work : works) {
             //获取作者名字
             List<String> suitCrowds = work.getSuitCrowds();
-            for (int i=0;i<suitCrowds.size();i++){
+            for (int i = 0; i < suitCrowds.size(); i++) {
                 name = suitCrowds.get(i);
-                if (name.equals(semantics)){
+                if (name.equals(semantics)) {
                     //获取游戏名
-                    String gameName =  work.getName();
-                    log.warn("gameName:{}",gameName);
+                    String gameName = work.getName();
+                    log.warn("gameName:{}", gameName);
                     //获取游戏分数
                     Double fraction = work.getScore();
-                    log.warn("fraction:{}",fraction);
+                    log.warn("fraction:{}", fraction);
                     //获取游戏编号
                     String botAccount = work.getBotAccount();
-                    log.warn("botAccount:{}",botAccount);
+                    log.warn("botAccount:{}", botAccount);
                     //存入游戏编号集合
                     gameNumber.put(gameName, botAccount);
                     //存入游戏评分集合
@@ -831,56 +897,66 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==list.size()-1){
+            if (i == list.size() - 1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》，";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》，";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您推荐以上适合"+name+"作品："+titleText+"你可以说：打开"+titleList.get(0)+"作品";
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您推荐以上适合" + name + "作品：" + titleText + "你可以说：打开" + titleList.get(0) + "作品";
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取收费游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
 
             titleList.add(gameName2);
 
         }
-        String recommendText ="对不起，暂时没有适合"+semantics+"的作品";
-        String recommendName="对不起，暂时没有适合"+semantics+"的作品";
-        return TypeRecommendation.packageResult(recommendName,recommendText);
+        String recommendText = "对不起，暂时没有适合" + semantics + "的作品";
+        String recommendName = "对不起，暂时没有适合" + semantics + "的作品";
+        return TypeRecommendation.packageResult(recommendName, recommendText);
     }
 
     /**
      * 手表推荐之收藏最多的作品
+     *
      * @param semantics
      * @return
      */
     public static String mostFavorites(DataResponse dataResponse, String semantics) {
 
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         String name = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏收藏人数
@@ -888,21 +964,21 @@ public class IntentionUtils {
 
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
-        if (works.size()<=0){
-            String recommendText ="暂无作品";
-            String recommendName="暂无作品";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无作品";
+            String recommendName = "暂无作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取作品收藏人数
             int plotCount = work.getPlotCount();
             //获取游戏名
-            String gameName =  work.getName();
-            log.warn("gameName:{}",gameName);
+            String gameName = work.getName();
+            log.warn("gameName:{}", gameName);
             //获取游戏编号
             String botAccount = work.getBotAccount();
-            log.warn("botAccount:{}",botAccount);
+            log.warn("botAccount:{}", botAccount);
             //存入游戏编号集合
             gameNumber.put(gameName, botAccount);
             //存入游戏评分集合
@@ -921,37 +997,45 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==2){
+            if (i == list.size()-1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
 
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》，";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》，";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您推荐以上收藏最多的作品："+titleText+"你可以说：打开"+titleList.get(0)+"作品";
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您推荐以上收藏最多的作品：" + titleText + "你可以说：打开" + titleList.get(0) + "作品";
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取收费游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
-            title="《"+gameName2+"》,";
-            titleList.add(title);
+            text += number2 + "+" + gameName2 + ",";
+            titleList.add(gameName2);
 
         }
         return null;
@@ -959,6 +1043,7 @@ public class IntentionUtils {
 
     /**
      * 手表推荐值作品简介查询
+     *
      * @param semantics
      * @return
      */
@@ -966,24 +1051,24 @@ public class IntentionUtils {
         //获取works将map转对象
         log.warn("打卡");
         List<WorksPojo> works = dataResponse.getWorks();
-        if (works.size()<=0){
-            String recommendText ="暂无作品";
-            String recommendName="没有"+semantics+"这个作品哦";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无作品";
+            String recommendName = "没有" + semantics + "这个作品哦";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
         //循环所有作品，
         for (WorksPojo work : works) {
             String name = work.getName();
-            if(name.equals(semantics)){
+            if (name.equals(semantics)) {
                 String intro = work.getIntro();
-                if(intro.equals("")||intro==null){
-                    String recommendText ="";
-                    String recommendName="对不起，暂时没有"+name+"的作品简介";
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                if (intro.equals("") || intro == null) {
+                    String recommendText = "";
+                    String recommendName = "对不起，暂时没有" + name + "的作品简介";
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
-                String recommendText ="";
-                String recommendName=name+"的作品简介："+intro;
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "";
+                String recommendName = name + "的作品简介：" + intro;
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
         }
@@ -992,15 +1077,16 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之系列推荐
+     *
      * @param semantics
      * @return
      */
     public static String seriesRecommendation(DataResponse dataResponse, String semantics) {
         //定义一个String类型的变量用于存储筛选的游戏
-        String text="";
-        String title="";
+        String text = "";
+        String title = "";
         List<String> titleList = new ArrayList<>();
-        String titleText="";
+        String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏评分
@@ -1008,27 +1094,27 @@ public class IntentionUtils {
 
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
-        if (works.size()<=0){
-            String recommendText ="暂无作品";
-            String recommendName="没有"+semantics+"系列的作品，要不试试其他系列吧";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (works.size() <= 0) {
+            String recommendText = "暂无作品";
+            String recommendName = "没有" + semantics + "系列的作品，要不试试其他系列吧";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取类型列表
             List<String> labels = work.getLabels();
             for (String label : labels) {
-                if(label.equals(semantics)){
+                if (label.equals(semantics)) {
                     //如果该作品属于该类型
                     //获取游戏名
-                    String gameName =  work.getName();
-                    log.warn("gameName:{}",gameName);
+                    String gameName = work.getName();
+                    log.warn("gameName:{}", gameName);
                     //获取游戏分数
                     Double fraction = work.getScore();
-                    log.warn("fraction:{}",fraction);
+                    log.warn("fraction:{}", fraction);
                     //获取游戏编号
                     String botAccount = work.getBotAccount();
-                    log.warn("botAccount:{}",botAccount);
+                    log.warn("botAccount:{}", botAccount);
                     //存入游戏编号集合
                     gameNumber.put(gameName, botAccount);
                     //存入游戏评分集合
@@ -1047,34 +1133,43 @@ public class IntentionUtils {
         });
 
         //循环遍历集合，提取游戏名游戏编号
-        for (int i=0;i<list.size();i++){
+        for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
-            if(i==list.size()-1){
+            if (i == list.size() - 1) {
                 //获取游戏名
                 String gameName2 = list.get(i).getKey();
                 //获取收费游戏名编号
                 String number2 = gameNumber.get(gameName2);
-                text+=number2+"+"+gameName2;
+                text += number2 + "+" + gameName2;
                 titleList.add(gameName2);
-                if(titleList.size()>3){
-                    for(int j=0;j<3;j++){
-                        titleText+="《"+titleList.get(j)+"》,";
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
                     }
-                }else{
-                    for (int y=0;y<titleList.size();y++){
-                        titleText+="《"+titleList.get(y)+"》,";
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
                     }
                 }
-                String recommendText ="☛推荐"+text+"☚";
-                String recommendName="为您推荐以上作品："+titleText+"你可以说：打开"+titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+                String recommendText = "☛推荐" + text + "☚";
+                String recommendName = "为您推荐以上作品：" + titleText + "你可以说：打开" + titleList.get(0);
+                return TypeRecommendation.packageResult(recommendName, recommendText);
             }
 
             //获取游戏名
             String gameName2 = list.get(i).getKey();
             //获取游戏名编号
             String number2 = gameNumber.get(gameName2);
-            text+=number2+"+"+gameName2+",";
+            text += number2 + "+" + gameName2 + ",";
             titleList.add(gameName2);
 
         }
@@ -1083,6 +1178,7 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之类型
+     *
      * @param channelId
      * @param uid
      * @param semantics
@@ -1095,6 +1191,9 @@ public class IntentionUtils {
         List<String> titleList = new ArrayList<>();
         List<String> labels = new ArrayList<>();
         String titleText = "";
+        List<String> jy = new ArrayList<>();
+        jy.add("New");
+        jy.add("VIP");
 
         //循环所有作品获取作品类型
         List<WorksPojo> works = dataResponse.getWorks();
@@ -1105,19 +1204,20 @@ public class IntentionUtils {
                 labels.add(multipleLabel);
             }
         }
-        HashSet hashSet=new HashSet(labels);
+        HashSet hashSet = new HashSet(labels);
         labels.clear();
         labels.addAll(hashSet);
-        log.warn("所有类型:{}",labels);
+        labels.removeAll(jy);
+        log.warn("所有类型:{}", labels);
         //判断是否有类型
-        if(labels.size()<=0){
-            String recommendText ="";
-            String recommendName="对不起暂时没有作品类型";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+        if (labels.size() <= 0) {
+            String recommendText = "";
+            String recommendName = "对不起暂时没有作品类型";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
         //根据uid获取用户已经查寻的类型
-        List<String> range = redisTemplate.opsForList().range(uid+"labels", 0, -1);
+        List<String> range = redisTemplate.opsForList().range(uid + "labels", 0, -1);
 
         //调用接口获取设备中的数据
         List<BotConfig> botConfig = TypeRecommendation.getBotConfig();
@@ -1125,7 +1225,7 @@ public class IntentionUtils {
             //获取渠道id
             String recommendBotAccount = botConfig.get(z).getRecommendBotAccount();
             //判断渠道id是否相同
-            if(recommendBotAccount.equals(channelId)){
+            if (recommendBotAccount.equals(channelId)) {
                 //获取禁用标签
                 String labelBlacklist = botConfig.get(z).getLabelBlacklist();
                 String replace = labelBlacklist.replace(" ", "");
@@ -1134,54 +1234,62 @@ public class IntentionUtils {
                 String[] blacklist = replace.split(regex);
                 List<String> asList = Arrays.asList(blacklist);
                 labels.removeAll(asList);
-                log.warn("可以展示的类型:{}",labels);
+                log.warn("可以展示的类型:{}", labels);
 
                 for (String label : labels) {
                     typeList.add(label);
                 }
-                log.warn("类型备份typeList:{}",typeList);
+                log.warn("类型备份typeList:{}", typeList);
                 //取差集
                 labels.removeAll(range);
-                log.warn("缓存中没有的类型:{}",labels);
+                log.warn("缓存中没有的类型:{}", labels);
 
                 //判断取差集后的labels长度
-                if(labels.size()<=3){
+                if (labels.size() <= 3) {
                     for (String s : labels) {
                         titleList.add(s);
                     }
-                    log.warn("bbbbb:{}",titleList);
+                    log.warn("bbbbb:{}", titleList);
                     typeList.removeAll(labels);
-                    log.warn("ccxcc:{}",typeList);
-                    for (int j=0;j<(3-labels.size());j++){
+                    log.warn("ccxcc:{}", typeList);
+                    for (int j = 0; j < (3 - labels.size()); j++) {
                         titleList.add(typeList.get(j));
                     }
                     //删除Redis中所有的键
-                    redisTemplate.delete(uid+"labels");
+                    redisTemplate.delete(uid + "labels");
                     //将数据添加到redis
-                    redisTemplate.opsForList().leftPushAll(uid+"labels",titleList);
-                    for (String s : titleList) {
-                        titleText+=s+",";
+                    redisTemplate.opsForList().leftPushAll(uid + "labels", titleList);
+                    for (int i = 0; i < titleList.size(); i++) {
+                        if (i == titleList.size() - 1) {
+                            titleText += titleList.get(i) + "，";
+                            String recommendText = "";
+                            String recommendName = "作品类型有：" + titleText + "你可以试试对我说：推荐" + titleList.get(0) + "类型的作品给我";
+                            return TypeRecommendation.packageResult(recommendName, recommendText);
+                        }
+                        titleText += titleList.get(i) + "、";
                     }
-                    String recommendText ="";
-                    String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"类型的作品给我";
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
-                }else{
+
+                } else {
                     //循环遍历3个类型
-                    for(int i=0;i<3;i++){
+                    for (int i = 0; i < 3; i++) {
                         range.add(labels.get(i));
                         titleList.add(labels.get(i));
                     }
-                    for (String s : titleList) {
-                        titleText+=s+",";
+                    for (int i = 0; i < titleList.size(); i++) {
+                        if (i == titleList.size() - 1) {
+                            titleText += titleList.get(i) + "，";
+                            //删除Redis中所有的键
+                            //redisTemplate.boundListOps(uid).remove(0);
+                            redisTemplate.delete(uid + "labels");
+                            //将数据添加到redis
+                            redisTemplate.opsForList().leftPushAll(uid + "labels", range);
+                            String recommendText = "";
+                            String recommendName = "作品类型有：" + titleText + "你可以试试对我说：推荐" + titleList.get(0) + "类型的作品给我";
+                            return TypeRecommendation.packageResult(recommendName, recommendText);
+                        }
+                        titleText += titleList.get(i) + "、";
                     }
-                    //删除Redis中所有的键
-                    //redisTemplate.boundListOps(uid).remove(0);
-                    redisTemplate.delete(uid+"labels");
-                    //将数据添加到redis
-                    redisTemplate.opsForList().leftPushAll(uid+"labels",range);
-                    String recommendText ="";
-                    String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"类型的作品给我";
-                    return TypeRecommendation.packageResult(recommendName,recommendText);
+
                 }
 
             }
@@ -1191,51 +1299,58 @@ public class IntentionUtils {
         for (String label : labels) {
             typeList.add(label);
         }
-        log.warn("类型备份typeList:{}",typeList);
+        log.warn("类型备份typeList:{}", typeList);
         //取差集
         labels.removeAll(range);
-        log.warn("缓存中没有的类型:{}",labels);
+        log.warn("缓存中没有的类型:{}", labels);
 
         //判断取差集后的labels长度
-        if(labels.size()<=3){
+        if (labels.size() <= 3) {
             for (String s : labels) {
                 titleList.add(s);
             }
-            log.warn("bbbbb:{}",titleList);
+            log.warn("bbbbb:{}", titleList);
             typeList.removeAll(labels);
-            log.warn("ccxcc:{}",typeList);
-            for (int j=0;j<(3-labels.size());j++){
+            log.warn("ccxcc:{}", typeList);
+            for (int j = 0; j < (3 - labels.size()); j++) {
                 titleList.add(typeList.get(j));
             }
             //删除Redis中所有的键
-            redisTemplate.delete(uid+"labels");
+            redisTemplate.delete(uid + "labels");
             //将数据添加到redis
-            redisTemplate.opsForList().leftPushAll(uid+"labels",titleList);
+            redisTemplate.opsForList().leftPushAll(uid + "labels", titleList);
             for (String s : titleList) {
-                titleText+=s+",";
+                titleText += s + ",";
             }
-            String recommendText ="";
-            String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"类型的作品给我";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
-        }else{
+            String recommendText = "";
+            String recommendName = "作品类型有：" + titleText + "你可以试试对我说：推荐" + titleList.get(0) + "类型的作品给我";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        } else {
             //循环遍历3个类型
-            for(int i=0;i<3;i++){
+            for (int i = 0; i < 3; i++) {
                 range.add(labels.get(i));
                 titleList.add(labels.get(i));
             }
-            for (String s : titleList) {
-                titleText+=s+",";
+            for (int i = 0; i < titleList.size(); i++) {
+                if (i == titleList.size() - 1) {
+                    titleText += titleList.get(i) + "，";
+                    //删除Redis中所有的键
+                    //redisTemplate.boundListOps(uid).remove(0);
+                    redisTemplate.delete(uid + "labels");
+                    //将数据添加到redis
+                    redisTemplate.opsForList().leftPushAll(uid + "labels", range);
+                    String recommendText = "";
+                    String recommendName = "作品类型有：" + titleText + "你可以试试对我说：推荐" + titleList.get(0) + "类型的作品给我";
+                    return TypeRecommendation.packageResult(recommendName, recommendText);
+                }
+                titleText += titleList.get(i) + "、";
             }
-            //删除Redis中所有的键
-            //redisTemplate.boundListOps(uid).remove(0);
-            redisTemplate.delete(uid+"labels");
-            //将数据添加到redis
-            redisTemplate.opsForList().leftPushAll(uid+"labels",range);
-            String recommendText ="";
-            String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"类型的作品给我";
-            return TypeRecommendation.packageResult(recommendName,recommendText);
+
         }
+        return null;
     }
+
+
 
     /**
      * 手表推荐之系列查询
@@ -1299,43 +1414,107 @@ public class IntentionUtils {
                 redisTemplate.delete(uid);
                 //将数据添加到redis
                 redisTemplate.opsForList().leftPushAll(uid,titleList);
-                for (String s : titleList) {
-                    titleText+=s+",";
+                for (int i = 0; i < titleList.size(); i++) {
+                    if(i==titleList.size()-1){
+                        titleText+=titleList.get(i)+"，";
+                        String recommendText ="";
+                        String recommendName="目前作品系列有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"系列给我";
+                        return TypeRecommendation.packageResult(recommendName,recommendText);
+                    }
+                    titleText+=titleList.get(i)+"、";
                 }
-                String recommendText ="";
-                String recommendName="目前作品系列有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"系列给我";
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+
             }else{
                 //循环遍历3个类型
                 for(int i=0;i<3;i++){
                     range.add(seriesName.get(i));
                     titleList.add(seriesName.get(i));
                 }
-                for (String s : titleList) {
-                    titleText+=s+",";
+                for (int i = 0; i < titleList.size(); i++) {
+                    if(i==titleList.size()-1){
+                        titleText+=titleList.get(i)+"，";
+                        //删除Redis中所有的键
+                        //redisTemplate.boundListOps(uid).remove(0);
+                        redisTemplate.delete(uid);
+                        //将数据添加到redis
+                        redisTemplate.opsForList().leftPushAll(uid,range);
+                        String recommendText ="";
+                        String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"给我";
+                        return TypeRecommendation.packageResult(recommendName,recommendText);
+                    }
+                    titleText+=titleList.get(i)+"、";
                 }
-                //删除Redis中所有的键
-                //redisTemplate.boundListOps(uid).remove(0);
-                redisTemplate.delete(uid);
-                //将数据添加到redis
-                redisTemplate.opsForList().leftPushAll(uid,range);
-                String recommendText ="";
-                String recommendName="作品类型有："+titleText+"你可以试试对我说：推荐"+titleList.get(0)+"给我";
-                return TypeRecommendation.packageResult(recommendName,recommendText);
+
             }
         }
+        return null;
     }
 
     /**
      * 手表推荐之作者推荐
-     * @param dataResponse
-     * @param semantics
-     * @param uid
-     * @param redisTemplate
+     * @param dataResponse 作品信息
+     * @param semantics 关键词
+     * @param uid 用户id
+     * @param redisTemplate 操作Redis
      * @return
      */
     public static String recommendedWorks(DataResponse dataResponse, String semantics, String uid, RedisTemplate redisTemplate) {
+        //定义一个String类型的变量用于存储筛选的游戏
+        String text="";
+        String title="";
+        List<String> typeList = new ArrayList<>();
+        List<String> titleList = new ArrayList<>();
+        String titleText="";
+        //获取作者作品数量集合
+        Map<String, Integer> map = new HashMap<>();
 
-        return null;
+        //获取所有作品
+        List<WorksPojo> works = dataResponse.getWorks();
+
+        //循环所有作品名去重
+        for (WorksPojo work : works) {
+            typeList.add(work.getAuthorName());
+        }
+
+        //判断是否有作者
+        if(typeList.size()<=0){
+            String recommendText ="";
+            String recommendName="暂无作者";
+            return TypeRecommendation.packageResult(recommendName,recommendText);
+        }else {
+            for (String s : typeList) {
+                Integer count=map.get(s);
+                map.put(s,(count==null)? 1:count+1);
+            }
+            //将游戏按照数量降序排序
+            List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(map.entrySet());
+            Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+                @Override
+                public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                    return o2.getValue().compareTo(o1.getValue());
+                }
+            });
+
+            //循环获取作者名
+            for(int i=0;i<3;i++){
+                if(i==list.size()){
+                    //获取作者名
+                    titleText+=list.get(i).getKey()+"，";
+                    String recommendText ="";
+                    String recommendName="目前作者有："+titleText+"你可以说：推荐"+list.get(0).getKey()+"的作品给我";
+                    return TypeRecommendation.packageResult(recommendName,recommendText);
+                }else if(i==2){
+                    titleText+=list.get(i).getKey()+"，";
+                }else {
+                    //获取作者名
+                    titleText+=list.get(i).getKey()+"、";
+                }
+
+            }
+
+            String recommendText ="";
+            String recommendName="目前作者有："+titleText+"你可以说：推荐"+list.get(0).getKey()+"的作品给我";
+            return TypeRecommendation.packageResult(recommendName,recommendText);
+        }
     }
 }
