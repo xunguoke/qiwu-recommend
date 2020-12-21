@@ -2,7 +2,6 @@ package ai.qiwu.com.cn.common.resolveUtils;
 
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

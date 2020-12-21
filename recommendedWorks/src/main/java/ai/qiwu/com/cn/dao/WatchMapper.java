@@ -1,5 +1,6 @@
 package ai.qiwu.com.cn.dao;
 
+import ai.qiwu.com.cn.pojo.UserHistory;
 import ai.qiwu.com.cn.pojo.Watch;
 
 import java.util.List;
@@ -15,4 +16,11 @@ public interface WatchMapper {
      * @return
      */
     List<Watch> findByChannelId(String channelId);
+
+    /**
+     * 根据用户id查询作品
+     * @param uid 用户id
+     * @return
+     */
+    List<UserHistory> findByUid(String uid);
 }

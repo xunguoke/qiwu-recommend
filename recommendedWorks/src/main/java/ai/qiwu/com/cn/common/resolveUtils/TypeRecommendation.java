@@ -1,6 +1,7 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
 import ai.qiwu.com.cn.common.FixedVariable.RwConstant;
+import ai.qiwu.com.cn.pojo.UserHistory;
 import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.pojo.connectorPojo.RequestPojo.Data;
@@ -11,7 +12,11 @@ import com.alibaba.fastjson.JSON;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +30,8 @@ import java.util.*;
 @Slf4j
 @Service
 public class TypeRecommendation {
-
+@Autowired
+private WatchService watchService;
 
     /**
      * 获取类型推荐
@@ -164,7 +170,7 @@ public class TypeRecommendation {
     }
 
     /**
-     * 判断渠道id在数中是否存在
+     * 根据渠道ID查询数据库中的作品
      * @param intent
      * @param watchService
      * @return
@@ -230,7 +236,7 @@ public class TypeRecommendation {
     }
 
     /**
-     *
+     * 禁用标签
      * @return
      * @param channelId
      */
@@ -291,5 +297,17 @@ public class TypeRecommendation {
         }
 
         return null;
+    }
+
+
+    /**
+     * 查询数据库中指定用户已经玩过的作品
+     * @return
+     */
+    public static List<UserHistory> findByUid(String uid, WatchService watchService) {
+        //数据库中查询
+        List<UserHistory> userHistory = watchService.findByUid(uid);
+        log.warn("userHistory:{}",userHistory);
+        return userHistory;
     }
 }

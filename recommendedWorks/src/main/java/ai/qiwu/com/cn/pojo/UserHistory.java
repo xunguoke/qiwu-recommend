@@ -3,21 +3,21 @@ package ai.qiwu.com.cn.pojo;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.math.BigInteger;
 import java.util.Date;
 
 /**
- * 数据库作品信息
+ * 用户已玩作品
  * @author hjd
  */
-@Setter
 @Getter
-public class Watch {
-    private String app_channel_id;
+@Setter
+public class UserHistory {
+    private Integer id;
+    private String type;
     private String work_name;
-    private BigInteger watch;
-    private Float score;
-    private Byte online;
+    private String user_id;
+    private String channel_id;
     private Date gmt_create;
     private Date gmt_modified;
+
 }

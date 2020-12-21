@@ -9,4 +9,12 @@
         SELECT * FROM work_evaluate_tb
         WHERE app_channel_id = #{channelId} AND online = #{1}
     </select>
+
+    <!--根据用户id查询作品-->
+    <select id="findByUid" resultType="ai.qiwu.com.cn.pojo.UserHistory">
+        SELECT * FROM app_user_history_tb
+        WHERE channel_id = #{channelId}
+    </select>
+
+
 </mapper>

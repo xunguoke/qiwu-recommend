@@ -1,9 +1,12 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
+import ai.qiwu.com.cn.pojo.Watch;
+import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.BotConfig;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
+import ai.qiwu.com.cn.service.handleService.WatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,7 +16,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * 手机推荐返回数据
+ * 手表推荐返回数据
  * @author hjd
  */
 @Slf4j
@@ -24,14 +27,19 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之推荐
-     *
-     * @param semantics
      * @return
      */
-    public static String recommenda(DataResponse dataResponse, String semantics) {
+    public static String recommenda(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+
+
         //获取返回信息
         String text = "";
-        String title = "";
         List<String> titleList = new ArrayList<>();
         String titleText = "";
 
@@ -226,7 +234,19 @@ public class IntentionUtils {
      *
      * @return
      */
-    public static String typeRecommendation(String channelId, DataResponse dataResponse, String semantics) {
+    public static String typeRecommendation(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+
+
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -358,11 +378,17 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之最新推荐
-     *
-     * @param semantics
      * @return
      */
-    public static String latestCreation(DataResponse dataResponse, String semantics) {
+    public static String latestCreation(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+
+
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -457,11 +483,18 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之类似作品推荐
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String similarWorks(DataResponse dataResponse, String semantics) {
+    public static String similarWorks(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
+
         //用于存储临时数据
         List<WorkInformation> listWork = new ArrayList<WorkInformation>();
         //用于存储用户说的作品类型列表
@@ -587,11 +620,18 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之某作者的作品推荐
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String authorWorks(DataResponse dataResponse, String semantics) {
+    public static String authorWorks(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
+
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -689,11 +729,18 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作品类型查询
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String typeOfWork(DataResponse dataResponse, String semantics) {
+    public static String typeOfWork(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
+
         //定义一个String类型的变量用于存储筛选的游戏
         String title = "";
         List<String> jy = new ArrayList<>();
@@ -771,11 +818,18 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作者查询
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String authorQuery(DataResponse dataResponse, String semantics) {
+    public static String authorQuery(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
+
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -808,16 +862,17 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作品编号查询
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String workNumber(DataResponse dataResponse, String semantics) {
-        //定义一个String类型的变量用于存储筛选的游戏
-        String text = "";
-        String title = "";
-        List<String> titleList = new ArrayList<>();
-        String titleText = "";
+    public static String workNumber(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
 
@@ -842,11 +897,17 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之人群推荐
-     *
-     * @param semantics 语义
      * @return
      */
-    public static String crowdRecommendation(DataResponse dataResponse, String semantics) {
+    public static String crowdRecommendation(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -946,10 +1007,15 @@ public class IntentionUtils {
     /**
      * 手表推荐之收藏最多的作品
      *
-     * @param semantics
      * @return
      */
-    public static String mostFavorites(DataResponse dataResponse, String semantics) {
+    public static String mostFavorites(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
 
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
@@ -1043,11 +1109,17 @@ public class IntentionUtils {
 
     /**
      * 手表推荐值作品简介查询
-     *
-     * @param semantics
      * @return
      */
-    public static String introduction(DataResponse dataResponse, String semantics) {
+    public static String introduction(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
         //获取works将map转对象
         log.warn("打卡");
         List<WorksPojo> works = dataResponse.getWorks();
@@ -1077,14 +1149,19 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之系列推荐
-     *
-     * @param semantics
      * @return
      */
-    public static String seriesRecommendation(DataResponse dataResponse, String semantics) {
+    public static String seriesRecommendation(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取语义
+        String semantics = intent.getWorks();
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
-        String title = "";
         List<String> titleList = new ArrayList<>();
         String titleText = "";
         //创建一个集合用于存储游戏名，游戏编号
@@ -1178,14 +1255,20 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之类型
-     *
-     * @param channelId
-     * @param uid
-     * @param semantics
      * @param redisTemplate
      * @return
      */
-    public static String type(String channelId, DataResponse dataResponse, String uid, String semantics, RedisTemplate redisTemplate) {
+    public static String type(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取用户id
+        String uid = intent.getUid();
         //定义一个String类型的变量用于存储筛选的游戏
         List<String> typeList = new ArrayList<>();
         List<String> titleList = new ArrayList<>();
@@ -1354,14 +1437,20 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之系列查询
-     * @param channelId
-     * @param dataResponse
-     * @param semantics
-     * @param uid
      * @param redisTemplate
      * @return
      */
-    public static String seriesQuery(String channelId, DataResponse dataResponse, String semantics, String uid, RedisTemplate redisTemplate) {
+    public static String seriesQuery(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取用户id
+        String uid = intent.getUid();
         //定义一个String类型的变量用于存储筛选的游戏
         List<String> typeList = new ArrayList<>();
         List<String> titleList = new ArrayList<>();
@@ -1452,13 +1541,15 @@ public class IntentionUtils {
 
     /**
      * 手表推荐之作者推荐
-     * @param dataResponse 作品信息
-     * @param semantics 关键词
-     * @param uid 用户id
-     * @param redisTemplate 操作Redis
      * @return
      */
-    public static String recommendedWorks(DataResponse dataResponse, String semantics, String uid, RedisTemplate redisTemplate) {
+    public static String recommendedWorks(IntentionRequest intent, WatchService watchService) {
+        //请求推荐作品接口，返回所有作品
+        Map map = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取交集
+        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
         //定义一个String类型的变量用于存储筛选的游戏
         String text="";
         String title="";
@@ -1466,7 +1557,7 @@ public class IntentionUtils {
         List<String> titleList = new ArrayList<>();
         String titleText="";
         //获取作者作品数量集合
-        Map<String, Integer> map = new HashMap<>();
+        Map<String, Integer> maps = new HashMap<>();
 
         //获取所有作品
         List<WorksPojo> works = dataResponse.getWorks();
@@ -1483,11 +1574,11 @@ public class IntentionUtils {
             return TypeRecommendation.packageResult(recommendName,recommendText);
         }else {
             for (String s : typeList) {
-                Integer count=map.get(s);
-                map.put(s,(count==null)? 1:count+1);
+                Integer count=maps.get(s);
+                maps.put(s,(count==null)? 1:count+1);
             }
             //将游戏按照数量降序排序
-            List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(map.entrySet());
+            List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(maps.entrySet());
             Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
                 @Override
                 public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {

@@ -1,6 +1,7 @@
 package ai.qiwu.com.cn.service.handleService.Impl;
 
 import ai.qiwu.com.cn.dao.WatchMapper;
+import ai.qiwu.com.cn.pojo.UserHistory;
 import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.service.handleService.WatchService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,5 +25,15 @@ public class WatchServiceImpl implements WatchService {
     @Override
     public List<Watch> findByChannelId(String channelId) {
         return watchMapper.findByChannelId(channelId);
+    }
+
+    /**
+     * 根据用户id查询作品
+     * @param uid 用户id
+     * @return
+     */
+    @Override
+    public List<UserHistory> findByUid(String uid) {
+        return watchMapper.findByUid(uid);
     }
 }
