@@ -10,8 +10,9 @@ import java.util.Date;
  * 数据库作品信息
  * @author hjd
  */
-@Setter
+
 @Getter
+@Setter
 public class Watch {
     private String app_channel_id;
     private String work_name;
@@ -21,3 +22,4 @@ public class Watch {
     private Date gmt_create;
     private Date gmt_modified;
 }
+

@@ -13,7 +13,13 @@
     <!--根据用户id查询作品-->
     <select id="findByUid" resultType="ai.qiwu.com.cn.pojo.UserHistory">
         SELECT * FROM app_user_history_tb
-        WHERE channel_id = #{channelId}
+        WHERE user_id = #{uid}
+    </select>
+
+    <!--根据用户id以及时间段查询作品-->
+    <select id="findByUidOfDate" resultType="ai.qiwu.com.cn.pojo.UserHistory">
+        SELECT * FROM app_user_history_tb
+        WHERE user_id = #{uid} AND  gmt_modified >= #{startingTime} AND gmt_modified &lt;= #{endTime}
     </select>
 
 

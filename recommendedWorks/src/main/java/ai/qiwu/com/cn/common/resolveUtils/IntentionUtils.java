@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 手表推荐返回数据
@@ -29,7 +30,7 @@ public class IntentionUtils {
      * 手表推荐之推荐
      * @return
      */
-    public static String recommenda(IntentionRequest intent, WatchService watchService) {
+    public static String recommenda(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -62,6 +63,15 @@ public class IntentionUtils {
             String recommendName = "暂无作品！";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
+
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",works);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         for (WorksPojo work : works) {
             //获取是否收费信息
@@ -234,7 +244,7 @@ public class IntentionUtils {
      *
      * @return
      */
-    public static String typeRecommendation(IntentionRequest intent, WatchService watchService) {
+    public static String typeRecommendation(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -245,7 +255,7 @@ public class IntentionUtils {
         String semantics = intent.getWorks();
         //获取交集
         DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
-
+        List<WorksPojo> worksList = new ArrayList<WorksPojo>();
 
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
@@ -262,7 +272,6 @@ public class IntentionUtils {
 
         //调用接口获取设备中的数据
         List<BotConfig> botConfig = TypeRecommendation.getBotConfig();
-
         //判断是否有作品
         if (works.size() <= 0) {
             String recommendText = "暂无" + semantics + "类型的作品，要不试试其他类型吧";
@@ -294,14 +303,12 @@ public class IntentionUtils {
             }
         }
 
-
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取类型列表
             List<String> labels = work.getLabels();
             for (String label : labels) {
                 if (label.equals(semantics)) {
-                    //如果该作品属于该类型
                     //获取游戏名
                     String gameName = work.getName();
                     log.warn("gameName:{}", gameName);
@@ -315,9 +322,19 @@ public class IntentionUtils {
                     gameNumber.put(gameName, botAccount);
                     //存入游戏评分集合
                     gameRating.put(gameName, fraction);
+                    //如果该作品属于该类型
+                    worksList.add(work);
                 }
             }
         }
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //将游戏按照评分降序排序
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
@@ -327,7 +344,7 @@ public class IntentionUtils {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-
+log.warn("list:{}",list);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
@@ -358,6 +375,7 @@ public class IntentionUtils {
                         }
                     }
                 }
+                log.warn("准备返回数据");
                 String recommendText = "☛推荐" + text + "☚";
                 String recommendName = "为您推荐以上" + semantics + "类型作品：" + titleText + "你可以说：打开" + titleList.get(0);
                 return TypeRecommendation.packageResult(recommendName, recommendText);
@@ -380,7 +398,7 @@ public class IntentionUtils {
      * 手表推荐之最新推荐
      * @return
      */
-    public static String latestCreation(IntentionRequest intent, WatchService watchService) {
+    public static String latestCreation(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -408,6 +426,15 @@ public class IntentionUtils {
             String recommendName = "暂无作品！";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
+
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",works);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //循环所有作品，
         for (WorksPojo work : works) {
@@ -485,7 +512,7 @@ public class IntentionUtils {
      * 手表推荐之类似作品推荐
      * @return
      */
-    public static String similarWorks(IntentionRequest intent, WatchService watchService) {
+    public static String similarWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -494,6 +521,7 @@ public class IntentionUtils {
         DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
         //获取语义
         String semantics = intent.getWorks();
+        List<WorksPojo> worksList=new ArrayList<>();
 
         //用于存储临时数据
         List<WorkInformation> listWork = new ArrayList<WorkInformation>();
@@ -525,6 +553,7 @@ public class IntentionUtils {
             String gameName = work.getName();
             log.warn("gameName2:{}", gameName);
             if (!gameName.equals(semantics)) {
+                worksList.add(work);
                 //获取游戏分数
                 Double fraction = work.getScore();
                 log.warn("fraction:{}", fraction);
@@ -550,6 +579,15 @@ public class IntentionUtils {
             String recommendName = "对不起，暂时没有和《" + semantics + "》相似的作品";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
+
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //循环集合按照Size倒序排序，size相同时按照评分倒序
         Collections.sort(listWork, new Comparator<WorkInformation>() {
@@ -622,7 +660,7 @@ public class IntentionUtils {
      * 手表推荐之某作者的作品推荐
      * @return
      */
-    public static String authorWorks(IntentionRequest intent, WatchService watchService) {
+    public static String authorWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -631,6 +669,7 @@ public class IntentionUtils {
         DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
         //获取语义
         String semantics = intent.getWorks();
+        List<WorksPojo> worksList =new ArrayList<>();
 
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
@@ -650,6 +689,7 @@ public class IntentionUtils {
             //获取作者名字
             String authorName = work.getAuthorName();
             if (authorName.equals(semantics)) {
+                worksList.add(work);
                 //获取游戏名
                 String gameName = work.getName();
                 log.warn("gameName:{}", gameName);
@@ -666,6 +706,14 @@ public class IntentionUtils {
             }
         }
 
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //将游戏按照评分降序排序
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
@@ -731,7 +779,7 @@ public class IntentionUtils {
      * 手表推荐之作品类型查询
      * @return
      */
-    public static String typeOfWork(IntentionRequest intent, WatchService watchService) {
+    public static String typeOfWork(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -820,7 +868,7 @@ public class IntentionUtils {
      * 手表推荐之作者查询
      * @return
      */
-    public static String authorQuery(IntentionRequest intent, WatchService watchService) {
+    public static String authorQuery(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -864,7 +912,7 @@ public class IntentionUtils {
      * 手表推荐之作品编号查询
      * @return
      */
-    public static String workNumber(IntentionRequest intent, WatchService watchService) {
+    public static String workNumber(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -899,7 +947,7 @@ public class IntentionUtils {
      * 手表推荐之人群推荐
      * @return
      */
-    public static String crowdRecommendation(IntentionRequest intent, WatchService watchService) {
+    public static String crowdRecommendation(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -908,6 +956,7 @@ public class IntentionUtils {
         DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
         //获取语义
         String semantics = intent.getWorks();
+        List<WorksPojo> worksList =new ArrayList<>();
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
         String title = "";
@@ -929,6 +978,8 @@ public class IntentionUtils {
             for (int i = 0; i < suitCrowds.size(); i++) {
                 name = suitCrowds.get(i);
                 if (name.equals(semantics)) {
+                    worksList.add(work);
+
                     //获取游戏名
                     String gameName = work.getName();
                     log.warn("gameName:{}", gameName);
@@ -947,6 +998,14 @@ public class IntentionUtils {
 
         }
 
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //将游戏按照评分降序排序
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
@@ -1009,7 +1068,7 @@ public class IntentionUtils {
      *
      * @return
      */
-    public static String mostFavorites(IntentionRequest intent, WatchService watchService) {
+    public static String mostFavorites(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -1035,6 +1094,16 @@ public class IntentionUtils {
             String recommendName = "暂无作品";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
+
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",works);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
+
         //循环所有作品，
         for (WorksPojo work : works) {
             //获取作品收藏人数
@@ -1111,7 +1180,7 @@ public class IntentionUtils {
      * 手表推荐值作品简介查询
      * @return
      */
-    public static String introduction(IntentionRequest intent, WatchService watchService) {
+    public static String introduction(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -1151,7 +1220,7 @@ public class IntentionUtils {
      * 手表推荐之系列推荐
      * @return
      */
-    public static String seriesRecommendation(IntentionRequest intent, WatchService watchService) {
+    public static String seriesRecommendation(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -1168,6 +1237,7 @@ public class IntentionUtils {
         HashMap<String, String> gameNumber = new HashMap<>();
         //创建一个集合用于存储游戏名，游戏评分
         HashMap<String, Double> gameRating = new HashMap<>();
+        List<WorksPojo> worksList=new ArrayList<>();
 
         //获取works将map转对象
         List<WorksPojo> works = dataResponse.getWorks();
@@ -1183,6 +1253,7 @@ public class IntentionUtils {
             for (String label : labels) {
                 if (label.equals(semantics)) {
                     //如果该作品属于该类型
+                    worksList.add(work);
                     //获取游戏名
                     String gameName = work.getName();
                     log.warn("gameName:{}", gameName);
@@ -1199,6 +1270,15 @@ public class IntentionUtils {
                 }
             }
         }
+
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //将游戏按照评分降序排序
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
@@ -1543,7 +1623,7 @@ public class IntentionUtils {
      * 手表推荐之作者推荐
      * @return
      */
-    public static String recommendedWorks(IntentionRequest intent, WatchService watchService) {
+    public static String recommendedWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map map = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的

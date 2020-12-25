@@ -3,6 +3,7 @@ package ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
  */
 @Setter
 @Getter
-public class WorksPojo {
+public class WorksPojo implements Serializable {
         private String name;
         private String ttsName;
         private String seriesName;

@@ -41,6 +41,7 @@ private WatchService watchService;
     public static IntentionRequest getIntent(HttpServletRequest request) {
         //解析请求
         Map map = CommonlyUtils.parsingRequest(request);
+        log.warn("map:{}",map);
         //获取指定件所对应的值
         String channelId = (String) map.get("channelId");
         log.warn("渠道ID:{}",channelId);
@@ -309,5 +310,37 @@ private WatchService watchService;
         List<UserHistory> userHistory = watchService.findByUid(uid);
         log.warn("userHistory:{}",userHistory);
         return userHistory;
+    }
+
+    /**
+     * 根据用户id和指定时间段查询玩过的作品
+     */
+    public static List<UserHistory> findByUidOfDate(String uid, WatchService watchService,String semantics) {
+        //获取开始时间
+        String startingTime;
+        //获取结束时间
+        String endTime;
+        //调用方法解析语义，获取时间
+        List<String> date = JudgmentIntention.getDate(semantics);
+        if(date.size()>1){
+            //获取开始时间
+            startingTime = date.get(0);
+            log.warn("startingTime:{}",startingTime);
+            //获取结束时间
+            endTime = date.get(1);
+            log.warn("endTime:{}",endTime);
+        }else{
+            //获取开始时间
+            startingTime = date.get(0);
+            log.warn("startingTime:{}",startingTime);
+            //获取当前时间
+            endTime = DateUtil.currentTimes();
+            log.warn("endTime:{}",endTime);
+        }
+        //数据库中查询
+        List<UserHistory> userHistory = watchService.findByUidOfDate(uid,startingTime,endTime);
+        log.warn("userHistory:{}",userHistory);
+        return userHistory;
+
     }
 }

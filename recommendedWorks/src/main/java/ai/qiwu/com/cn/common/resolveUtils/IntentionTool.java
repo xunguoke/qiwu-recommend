@@ -1,8 +1,10 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
+import ai.qiwu.com.cn.pojo.UserHistory;
 import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
+import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.ReturnedMessages;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import ai.qiwu.com.cn.service.handleService.WatchService;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  *手表推荐未做部分
@@ -25,10 +28,11 @@ public class IntentionTool {
     /**
      * 手表推荐之历史记录类型查询
      * @param intent 用户请求信息
-     * @param watchService 数据库才做类对象
+     * @param watchService 数据库类对象
+     * @param redisTemplate
      * @return
      */
-    public static String historyTypeQuery(IntentionRequest intent, WatchService watchService) {
+    public static String historyTypeQuery(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
         //请求推荐作品接口，返回所有作品
         Map maps = TypeRecommendation.getWorks();
         //查询数据库中渠道id相同的
@@ -41,7 +45,6 @@ public class IntentionTool {
         String uid = intent.getUid();
         //获取交集
         DataResponse dataResponses = ExtractUtils.playedWorks(watches, maps,uid,watchService);
-
 
         //定义一个String类型的变量用于存储筛选的游戏
         String text = "";
@@ -74,6 +77,14 @@ public class IntentionTool {
             }
         }
 
+        //清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",works);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
 
         //循环所有作品，
         for (WorksPojo work : works) {
@@ -150,10 +161,243 @@ public class IntentionTool {
     /**
      * 收表推荐之历史记录时间段查询
      * @param intent 用户请求信息
-     * @param watchService 数据库才做类对象
+     * @param watchService 数据库类对象
+     * @param redisTemplate
      * @return
      */
-    public static String timePeriodQuery(IntentionRequest intent, WatchService watchService) {
-        return null;
+    public static String timePeriodQuery(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //请求推荐作品接口，返回所有作品
+        Map maps = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的作品
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //获取用户历史作品
+        List<UserHistory> byUidOfDate = TypeRecommendation.findByUidOfDate(uid, watchService, semantics);
+        //获取作品名，时间集合
+        List<Map.Entry<String, Date>> workTime = ExtractUtils.workTime(byUidOfDate);
+        //获取交集(此时已经按照时间降序排序)
+        DataResponse dataResponses = ExtractUtils.workResult(watches, maps,workTime);
+        //获取所有作品
+        List<WorksPojo> works = dataResponses.getWorks();
+        //将作品存到缓存中去
+        ExtractUtils.cacheSave(redisTemplate,works);
+        if(works.size()>0) {
+            //调用方法返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.listOfWorks(works);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(returnedMessages.getWorkInformation(),returnedMessages.getWorksList());
+        }else{
+            String recommendText = "您"+semantics+"没有体验过作品";
+            String recommendName = "您"+semantics+"没有体验过作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }
+    }
+
+    /**
+     * 手表推荐之类型推荐+联立查询意图
+     * @param intent 用户请求信息
+     * @param watchService 数据库类对象
+     * @param redisTemplate 操作缓存类对象
+     * @return
+     */
+    public static String typeCombination(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取缓存中的所有作品
+        List<WorksPojo> works = redisTemplate.opsForList().range("worksList", 0, -1);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //获取禁用标签
+        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        //判断禁用标签是否包含意图
+        if(strings.contains(semantics)){
+            //包含
+            String recommendText = "列表中没有"+semantics+"类型的作品";
+            String recommendName = "列表中没有"+semantics+"类型的作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }else{
+            //不包含，根据类型筛选出作品
+            List<WorksPojo> worksPoJos = ExtractUtils.typeSelection(works, semantics);
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate,worksPoJos);
+            //判断作品列表是否为空
+            if(worksPoJos==null){
+                String recommendText = "列表中没有"+semantics+"类型的作品";
+                String recommendName = "列表中没有"+semantics+"类型的作品";
+                return TypeRecommendation.packageResult(recommendName, recommendText);
+            }else {
+                //跟具作品分数进行排序返回作品列表和信息
+                ReturnedMessages returnedMessages = ExtractUtils.scoreScreening(worksPoJos);
+                String work = returnedMessages.getWorkInformation();
+                String workInformation="列表中" + semantics + "类型的作品有：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+                //封装返回结果信息
+                return TypeRecommendation.packageResult(workInformation,returnedMessages.getWorksList());
+            }
+        }
+    }
+
+    /**
+     * 手表推荐之某作者的作品推荐+联立查询意图
+     * @param intent 用户请求信息
+     * @param watchService 数据库类对象
+     * @param redisTemplate 操作缓存类对象
+     * @return
+     */
+    public static String authorJoint(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取缓存中的所有作品
+        List<WorksPojo> works = redisTemplate.opsForList().range("worksList", 0, -1);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //获取禁用标签
+        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        //筛选不包含渠道禁用标签的作品
+        List<WorksPojo> worksPoJos = ExtractUtils.filterDisabled(works, strings);
+        //判断作品列表是否为空
+        if(worksPoJos==null){
+            String recommendText = "暂无"+semantics+"类型的作品";
+            String recommendName = "暂无"+semantics+"类型的作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }else {
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate,worksPoJos);
+            //跟具作品分数进行排序返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.scoreScreening(worksPoJos);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation="列表中" + semantics + "类型的作品有：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation,returnedMessages.getWorksList());
+        }
+    }
+
+    /**
+     * 手表推荐之最新推荐+联立查询意图
+     * @param intent 用户请求信息
+     * @param watchService 数据库类对象
+     * @param redisTemplate 操作缓存类对象
+     * @return
+     */
+    public static String theLatestJoint(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取缓存中的所有作品
+        List<WorksPojo> works = redisTemplate.opsForList().range("worksList", 0, -1);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //判断作品列表是否为空
+        if(works==null){
+            String recommendText = "列表中没有作品";
+            String recommendName = "列表中没有作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }else {
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate,works);
+            //跟具作品时间进行排序返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.timeOrder(works, semantics);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation="列表中最新上线的作品有：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation,returnedMessages.getWorksList());
+        }
+    }
+
+    /**
+     * 手表推荐之时间段最新推荐
+     * @param intent 用户请求信息
+     * @param watchService 数据库类对象
+     * @param redisTemplate 操作缓存类对象
+     * @return
+     */
+    public static String latestTime(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //请求推荐作品接口，返回所有作品
+        Map maps = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的作品
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //数据库渠道作品与所有作品接口的交集
+        DataResponse dataResponse = ExtractUtils.channelWorks(watches, maps);
+        //获取指定时间范围的作品
+        DataResponse dataResponses = ExtractUtils.latestTime(dataResponse, semantics);
+        //获取所有作品
+        List<WorksPojo> works = dataResponses.getWorks();
+        //将作品存到缓存中去
+        ExtractUtils.cacheSave(redisTemplate,works);
+        if(works.size()>0) {
+            //根据时间排序获取作品列表以及返回信息
+            ReturnedMessages returnedMessages = ExtractUtils.timeOrder(works,semantics);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation=semantics + "新上线的作品有：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation,returnedMessages.getWorksList());
+        }else{
+            String recommendText = "这个月没有上线新的作品";
+            String recommendName = "这个月没有上线新的作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }
+    }
+
+
+    /**
+     * 手表推荐之多类型或者推荐
+     * @param intent
+     * @param watchService
+     * @param redisTemplate
+     * @return
+     */
+    public static String orType(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //请求推荐作品接口，返回所有作品
+        Map maps = TypeRecommendation.getWorks();
+        //查询数据库中渠道id相同的作品
+        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
+        //获取语义
+        String semantics = intent.getWorks();
+        //解析语义
+        String[] split = semantics.split("[+]");
+        //转list
+        List<String> asList = Arrays.asList(split);
+        //获取渠道id
+        String channelId = intent.getChannelId();
+        //获取用户id
+        String uid = intent.getUid();
+        log.warn("到达这里");
+        //数据库渠道作品与所有作品接口的交集
+        DataResponse dataResponses = ExtractUtils.channelWorks(watches, maps);
+        //获取交集作品
+        List<WorksPojo> works1 = dataResponses.getWorks();
+        //获取禁用标签
+        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        //筛选不包含渠道禁用标签的作品
+        List<WorksPojo> worksPoJos = ExtractUtils.multiConditionScreening(works1, strings,semantics);
+        //将作品存到缓存中去
+        ExtractUtils.cacheSave(redisTemplate,worksPoJos);
+        if(worksPoJos.size()>0) {
+            //调用方法返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.scoreScreening(worksPoJos);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(returnedMessages.getWorkInformation(),returnedMessages.getWorksList());
+        }else{
+            String recommendText = "暂无"+asList.get(0)+"或"+asList.get(1)+"类型的作品，要不试试其他类型吧";
+            String recommendName = "暂无"+asList.get(0)+"或"+asList.get(1)+"类型的作品，要不试试其他类型吧";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }
+
     }
 }

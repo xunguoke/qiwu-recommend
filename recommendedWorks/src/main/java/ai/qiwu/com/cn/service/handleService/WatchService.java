@@ -23,4 +23,13 @@ public interface WatchService {
      * @return
      */
     List<UserHistory> findByUid(String uid);
+
+    /**
+     * 根据用户id以及时间段查询作品
+     * @param uid 用户id
+     * @param startingTime 开始时间
+     * @param endTime 结束时间
+     * @return
+     */
+    List<UserHistory> findByUidOfDate(String uid, String startingTime, String endTime);
 }
