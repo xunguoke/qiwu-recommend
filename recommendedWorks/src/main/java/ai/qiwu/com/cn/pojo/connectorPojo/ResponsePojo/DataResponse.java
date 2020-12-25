@@ -10,8 +10,15 @@ import java.util.List;
  * 封装作品数据
  */
 @Setter
-@Getter
 public class DataResponse {
     private List<String> labels;
     private List<WorksPojo> works;
+
+    public List<String> getLabels() {
+        return labels;
+    }
+
+    public List<WorksPojo> getWorks() {
+        return works;
+    }
 }

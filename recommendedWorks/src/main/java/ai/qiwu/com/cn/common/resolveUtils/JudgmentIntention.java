@@ -51,7 +51,7 @@ public class JudgmentIntention {
         }else if(intention.equals("手表推荐之系列推荐")) {
             return IntentionUtils.seriesRecommendation(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之类型")){
-                return IntentionUtils.type(intent, watchService,redisTemplate);
+            return IntentionUtils.type(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之系列查询")){
             return IntentionUtils.seriesQuery(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之作者推荐")){
@@ -70,6 +70,24 @@ public class JudgmentIntention {
             return IntentionTool.latestTime(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之多类型或者推荐")){
             return IntentionTool.orType(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之多类型推荐")){
+            return IntentionTool.multipleTypes(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之类型推荐+联立查询意图")){
+            return IntentionTool.typeIntent(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之某作者最新作品推荐")){
+            return IntentionTool.authorSLatest(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之某类型最新作品推荐")){
+            return IntentionTool.latestType(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之判断作品是否付费")){
+            return IntentionTool.whetherToPay(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之历史时间段和类型查询")){
+            return IntentionTool.historyType(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之某作者某类型推荐")){
+            return IntentionTool.authorType(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之某作者时间段最新作品推荐")){
+            return IntentionTool.authorSLatestWorks(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之某类型时间段最新的作品推荐")){
+            return IntentionTool.typeLatest(intent, watchService,redisTemplate);
         }else{
             log.warn("没有查询到合适的意图");
             return null;

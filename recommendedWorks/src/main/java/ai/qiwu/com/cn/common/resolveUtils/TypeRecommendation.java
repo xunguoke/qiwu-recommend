@@ -52,7 +52,11 @@ private WatchService watchService;
         String intention = (String) vars.get("手表推荐之推荐意图");
         log.warn("手表推荐之推荐意图:{}",intention);
         String works = (String) vars.get(intention);
+        String historyTypeOne = (String) vars.get(intention + "1");
+        String historyTypeTwo = (String) vars.get(intention + "2");
         log.warn("手表推荐:{}",works);
+        log.warn("手表推荐1:{}",historyTypeOne);
+        log.warn("手表推荐2:{}",historyTypeTwo);
 
 
 
@@ -64,6 +68,8 @@ private WatchService watchService;
         intentionRequest.setChatKey(chatKey);
         intentionRequest.setChannelId(channelId);
         intentionRequest.setUid(uid);
+        intentionRequest.setHistoryTypeOne(historyTypeOne);
+        intentionRequest.setHistoryTypeTwo(historyTypeTwo);
 
         return intentionRequest;
 

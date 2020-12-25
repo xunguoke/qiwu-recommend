@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.jdbc.Driver
     url: jdbc:mysql://localhost:3306/jiaoyou_db?useUnicode=true&characterEncoding=UTF-8
     username: root
-    password: 38A0O1jEPOE
+    password: root
 log:
   root: debug
 mybatis:

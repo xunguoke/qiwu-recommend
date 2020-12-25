@@ -323,7 +323,7 @@ public class ExtractUtils {
      */
     public static List<WorksPojo> typeSelection(List<WorksPojo> works, String semantics) {
         //定义一个集合用于保存筛选后的作品
-        List<WorksPojo> worksList=null;
+        List<WorksPojo> worksList=new ArrayList<>();
         //循环遍历所有作品
         for (WorksPojo work : works) {
             //获取作品类型列表
@@ -441,7 +441,7 @@ public class ExtractUtils {
      */
     public static List<WorksPojo> filterDisabled(List<WorksPojo> works, List<String> strings) {
         //定义一个集合用于保存筛选后的作品
-        List<WorksPojo> worksList=null;
+        List<WorksPojo> worksList=new ArrayList<>();
         //循环遍历所有作品
         for (WorksPojo work : works) {
             //获取作品类型
@@ -458,10 +458,9 @@ public class ExtractUtils {
     /**
      * 根据时间排序获取作品列表以及返回信息
      * @param works
-     * @param semantics
      * @return
      */
-    public static ReturnedMessages timeOrder(List<WorksPojo> works, String semantics) {
+    public static ReturnedMessages timeOrder(List<WorksPojo> works) {
         //创建返回信息对象
         ReturnedMessages messages = new ReturnedMessages();
         //最后返回的作品列表
@@ -561,7 +560,7 @@ public class ExtractUtils {
      * @return
      */
     public static DataResponse latestTime(DataResponse dataResponses, String semantics) {
-        List<WorksPojo> worksList = null;
+        List<WorksPojo> worksList = new ArrayList<>();
         //定义一个数组接收作品名
         List<String> interfaceWorks=null;
         //获取开始时间
@@ -630,7 +629,7 @@ public class ExtractUtils {
      */
     public static List<WorksPojo> multiConditionScreening(List<WorksPojo> works, List<String> strings, String semantics) {
         //定义一个集合用于保存筛选后的作品
-        List<WorksPojo> worksList=null;
+        List<WorksPojo> worksList=new ArrayList<>();
         //解析语义
         String[] split = semantics.split("[+]");
         //转list
@@ -652,5 +651,170 @@ public class ExtractUtils {
             }
             return worksList;
         }
+    }
+
+    /**
+     * 筛选不包含渠道禁用标签的作品且满足所有意图的作品
+     * @param works
+     * @param strings
+     * @param semantics
+     * @return
+     */
+    public static List<WorksPojo> allIntentions(List<WorksPojo> works, List<String> strings, String semantics) {
+        //定义一个集合用于保存筛选后的作品
+        List<WorksPojo> worksList=new ArrayList<>();
+        //定义一个变量用记录用户意图个数
+        int i;
+        boolean flag=true;
+        //解析语义
+        String[] split = semantics.split("[+]");
+        //转list
+        List<String> asList = Arrays.asList(split);
+        i=asList.size();
+        //取差集
+        asList.removeAll(strings);
+        //判断是否少了意图
+        if(asList.size()==i) {
+            //循环遍历所有作品
+            for (WorksPojo work : works) {
+                //获取所有作品类型
+                List<String> labels = work.getLabels();
+                //判断作品类型是否包含所有意图
+                for (String s : asList) {
+                    if(!labels.contains(s)){
+                        flag=false;
+                    }
+                }
+                //判断作品是否包含所有意图
+                if (flag==true){
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+
+
+        }else{
+            return worksList;
+        }
+
+    }
+
+    /**
+     * 筛选收费或者免费作品
+     * @param works
+     * @param strings
+     * @param semantics
+     * @return
+     */
+    public static List<WorksPojo> collectionAndPaymentScreening(List<WorksPojo> works, List<String> strings, String semantics) {
+        //创建一个集合用于存储免费付费作品关键词
+        Map map = new HashMap();
+        map.put("免费","New");
+        map.put("付费","VIP");
+        map.put("New","免费");
+        map.put("VIP","付费");
+        //定义一个集合用于保存筛选后的作品
+        List<WorksPojo> worksList=new ArrayList<>();
+        //判断标签是否被禁用
+        if(strings.contains(semantics)&&strings.contains(map.get(semantics))){
+            return worksList;
+        }else if(strings.contains(semantics)){
+            for (WorksPojo work : works) {
+                //获取作品类型
+                List<String> labels = work.getLabels();
+                if(labels.contains(map.get(semantics))){
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+        }else if(strings.contains(map.get(semantics))){
+            for (WorksPojo work : works) {
+                //获取作品类型
+                List<String> labels = work.getLabels();
+                if(labels.contains(semantics)){
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+        }else{
+            for (WorksPojo work : works) {
+                //获取作品类型
+                List<String> labels = work.getLabels();
+                if(labels.contains(semantics)||labels.contains(map.get(semantics))){
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+        }
+
+
+    }
+
+    /**
+     * 获取指定作者的作品
+     * @param dataResponse
+     * @param semantics
+     * @return
+     */
+    public static List<WorksPojo> authorWorks(DataResponse dataResponse, String semantics) {
+        //定义一个集合用于保存筛选后的作品
+        List<WorksPojo> worksList=new ArrayList<>();
+        //获取所有作品
+        List<WorksPojo> works = dataResponse.getWorks();
+        //循环所有作品
+        for (WorksPojo work : works) {
+            //判断作品是否属于指定作者
+            if(work.getName().equals(semantics)){
+                worksList.add(work);
+            }
+        }
+        return worksList;
+    }
+
+
+    /**
+     * 返回指定作品
+     * @param works
+     * @param semantics
+     * @return
+     */
+    public static WorksPojo designatedWorks(List<WorksPojo> works, String semantics) {
+        //循环所有作品
+        for (WorksPojo work : works) {
+            //判断作品名是否相同
+            if (work.getName().equals(semantics)){
+                //返回指定作品
+                return work;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 判断作品免费还是付费
+     * @param strings
+     * @return
+     */
+    public static List<String> chargeJudgment(List<String> labels, List<String> strings) {
+        Map map = new HashMap();
+        map.put("免费","New");
+        map.put("付费","VIP");
+        map.put("New","免费");
+        map.put("VIP","付费");
+        //定义一个集合用于保存筛选后的类型
+        List<String> labelsList=new ArrayList<>();
+        //作品免费还是付费
+        for (String label : labels) {
+            if(label.contains("免费")){
+                labelsList.add("免费");
+            }else if(label.contains("New")){
+                labelsList.add("New");
+            }else if(label.contains("付费")){
+                labelsList.add("付费");
+            }else if(label.contains("VIP")){
+                labelsList.add("VIP");
+            }
+        }
+        return labelsList;
     }
 }

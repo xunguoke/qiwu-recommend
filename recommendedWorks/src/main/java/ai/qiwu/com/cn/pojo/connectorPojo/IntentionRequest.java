@@ -33,4 +33,12 @@ public class IntentionRequest {
      * 用户ID
      */
     private String uid;
+    /**
+     * 手表推荐之历史记录时间段和类型查询1（历史时间段）
+     */
+    private String historyTypeOne;
+    /**
+     * 手表推荐之历史记录时间段和类型查询2（类型）
+     */
+    private String historyTypeTwo;
 }
