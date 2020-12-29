@@ -74,7 +74,7 @@ public class DateUtil {
         //获取当天时间的起点时间
         calendar.setTimeInMillis(System.currentTimeMillis());
         //获取当前日期前一天
-        calendar.add(Calendar.DATE, -1);
+        calendar.add(Calendar.DATE, -2);
         //转换成指定格式
         String yesterday = dateFormat.format(calendar.getTime());
         dataList.add(yesterday + " 00:00:00");
@@ -107,16 +107,20 @@ public class DateUtil {
      */
     public static List<String> getLastWeek() {
         List<String> dataList = new ArrayList<>(2);
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar calendar = Calendar.getInstance();
-        calendar.setFirstDayOfWeek(Calendar.MONDAY);//设置周一为一周之内的第一天
-        calendar.setTimeInMillis(System.currentTimeMillis());
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY-7);
-        String monday = dateFormat.format(calendar.getTime()) + " 00:00:00";
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY-7);
-        String sunday = dateFormat.format(calendar.getTime()) + " 24:00:00";
-        dataList.add(monday);
-        dataList.add(sunday);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // 设置时间格式
+        Calendar calendar1 = Calendar.getInstance();
+        Calendar calendar2 = Calendar.getInstance();
+        int dayOfWeek = calendar1.get(Calendar.DAY_OF_WEEK) - 1;
+        int offset1 = 1 - dayOfWeek;
+        int offset2 = 7 - dayOfWeek;
+        calendar1.add(Calendar.DATE, offset1 - 7);
+        calendar2.add(Calendar.DATE, offset2 - 7);
+// 上周星期一
+        String lastBeginDate = sdf.format(calendar1.getTime())+ " 00:00:00";
+        dataList.add(lastBeginDate);
+// 上周星期日
+        String lastEndDate = sdf.format(calendar2.getTime())+ " 00:00:00";
+       dataList.add(lastEndDate);
         return dataList;
     }
 

@@ -122,7 +122,6 @@ public class IntentionUtils {
             }
         });
         log.warn("list:{}", list);
-        log.warn("list2:{}", list2);
 
         //判断集合长度
         if (list.size() > list2.size()) {
@@ -461,7 +460,7 @@ log.warn("list:{}",list);
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-
+        log.warn("list:{}", list);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
@@ -566,6 +565,7 @@ log.warn("list:{}",list);
                 //判断有相同标签才存入集合
                 int size = labels.size();
                 log.warn("size:{}", size);
+                log.warn("labels:{}", labels);
                 if (size > 0) {
                     //创建对象传入参数
                     WorkInformation information = new WorkInformation(gameName, botAccount, fraction, size);
@@ -611,7 +611,7 @@ log.warn("list:{}",list);
                 return data2.compareTo(data1);
             }
         });
-
+        log.warn("listWork:{}", listWork);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < listWork.size(); i++) {
             //判断是否是最后
@@ -706,14 +706,7 @@ log.warn("list:{}",list);
             }
         }
 
-        //清空上一轮推荐的作品缓存
-        while (redisTemplate.opsForList().size("worksList")>0){
-            redisTemplate.opsForList().leftPop("worksList");
-        }
-        //将作品信息添加到缓存
-        redisTemplate.opsForList().rightPushAll("worksList",worksList);
-        //设置过期时间
-        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
+
 
         //将游戏按照评分降序排序
         List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
@@ -729,7 +722,14 @@ log.warn("list:{}",list);
             String recommendName = "对不起，暂时没有" + semantics + "的作品";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
-
+//清空上一轮推荐的作品缓存
+        while (redisTemplate.opsForList().size("worksList")>0){
+            redisTemplate.opsForList().leftPop("worksList");
+        }
+        //将作品信息添加到缓存
+        redisTemplate.opsForList().rightPushAll("worksList",worksList);
+        //设置过期时间
+        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
@@ -819,6 +819,7 @@ log.warn("list:{}",list);
                     if (botAccount.equals(recommendBotAccount)) {
                         //获取禁用标签
                         String labelBlacklist = config.getLabelBlacklist();
+                        log.warn("labelBlacklist:{}",labelBlacklist);
                         //去除空格
                         String replace = labelBlacklist.replace(" ", "");
                         //根据中文或英文逗号进行分割
@@ -1015,7 +1016,7 @@ log.warn("list:{}",list);
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-
+        log.warn("list:{}", list);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
@@ -1130,7 +1131,7 @@ log.warn("list:{}",list);
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-
+        log.warn("list:{}", list);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否是最后
@@ -1665,7 +1666,7 @@ log.warn("list:{}",list);
                     return o2.getValue().compareTo(o1.getValue());
                 }
             });
-
+log.warn("list:{}",list);
             //循环获取作者名
             for(int i=0;i<3;i++){
                 if(i==list.size()){

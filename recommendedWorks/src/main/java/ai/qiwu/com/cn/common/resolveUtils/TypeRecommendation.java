@@ -51,15 +51,35 @@ private WatchService watchService;
         Map vars = (Map) map.get("vars");
         String intention = (String) vars.get("手表推荐之推荐意图");
         log.warn("手表推荐之推荐意图:{}",intention);
+        //判断用户语句中是否有加号
+        if(intention.contains("+")){
+            //截取+号之前的数据
+            String intentions =intention.substring(0, intention.indexOf("+"));
+            String works = (String) vars.get(intentions);
+            String historyTypeOne = (String) vars.get(intentions + "1");
+            String historyTypeTwo = (String) vars.get(intentions + "2");
+            log.warn("手表推荐:{}",works);
+            log.warn("手表推荐1:{}",historyTypeOne);
+            log.warn("手表推荐2:{}",historyTypeTwo);
+
+            //将请求信息封装在对象中
+            IntentionRequest intentionRequest=new IntentionRequest();
+            intentionRequest.setWorks(works);
+                intentionRequest.setIntention(intention);
+            intentionRequest.setChatKey(chatKey);
+            intentionRequest.setChannelId(channelId);
+            intentionRequest.setUid(uid);
+            intentionRequest.setHistoryTypeOne(historyTypeOne);
+            intentionRequest.setHistoryTypeTwo(historyTypeTwo);
+
+            return intentionRequest;
+        }
         String works = (String) vars.get(intention);
         String historyTypeOne = (String) vars.get(intention + "1");
         String historyTypeTwo = (String) vars.get(intention + "2");
         log.warn("手表推荐:{}",works);
         log.warn("手表推荐1:{}",historyTypeOne);
         log.warn("手表推荐2:{}",historyTypeTwo);
-
-
-
 
         //将请求信息封装在对象中
         IntentionRequest intentionRequest=new IntentionRequest();
@@ -72,7 +92,6 @@ private WatchService watchService;
         intentionRequest.setHistoryTypeTwo(historyTypeTwo);
 
         return intentionRequest;
-
     }
     /**
      * 请求接口将接口返回数据转换成map
@@ -183,9 +202,11 @@ private WatchService watchService;
      * @return
      */
     public static List<Watch> channelJudgment(IntentionRequest intent, WatchService watchService) {
-        String channelId = intent.getChannelId();
+        //String channelId = intent.getChannelId();
+        String channelId = "jiaoyou-tvset-sdk-test";
+        Integer online=1;
         //数据库中查询渠道ID
-        List<Watch> channelIds = watchService.findByChannelId(channelId);
+        List<Watch> channelIds = watchService.findByChannelId(channelId,online);
         log.warn("channelIds:{}",channelIds);
         return channelIds;
     }

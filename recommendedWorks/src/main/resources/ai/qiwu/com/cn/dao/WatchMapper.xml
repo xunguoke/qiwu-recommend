@@ -7,7 +7,7 @@
     <!--根据渠道id查询-->
     <select id="findByChannelId" resultType="ai.qiwu.com.cn.pojo.Watch">
         SELECT * FROM work_evaluate_tb
-        WHERE app_channel_id = #{channelId} AND online = #{1}
+        WHERE app_channel_id = #{channelId} AND online = #{online}
     </select>
 
     <!--根据用户id查询作品-->

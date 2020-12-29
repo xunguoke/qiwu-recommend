@@ -20,11 +20,12 @@ public class WatchServiceImpl implements WatchService {
     /**
      * 根据渠道id查询数据
      * @param channelId 渠道id
+     * @param online
      * @return
      */
     @Override
-    public List<Watch> findByChannelId(String channelId) {
-        return watchMapper.findByChannelId(channelId);
+    public List<Watch> findByChannelId(String channelId, Integer online) {
+        return watchMapper.findByChannelId(channelId,online);
     }
 
     /**

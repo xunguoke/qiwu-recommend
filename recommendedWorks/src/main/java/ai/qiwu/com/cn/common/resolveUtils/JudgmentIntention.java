@@ -80,13 +80,13 @@ public class JudgmentIntention {
             return IntentionTool.latestType(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之判断作品是否付费")){
             return IntentionTool.whetherToPay(intent, watchService,redisTemplate);
-        }else if(intention.equals("手表推荐之历史时间段和类型查询")){
+        }else if(intention.equals("手表推荐之历史记录时间段和类型查询")){
             return IntentionTool.historyType(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之某作者某类型推荐")){
             return IntentionTool.authorType(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之某作者时间段最新作品推荐")){
             return IntentionTool.authorSLatestWorks(intent, watchService,redisTemplate);
-        }else if(intention.equals("手表推荐之某类型时间段最新的作品推荐")){
+        }else if(intention.equals("手表推荐之某类型时间段最新作品推荐")){
             return IntentionTool.typeLatest(intent, watchService,redisTemplate);
         }else{
             log.warn("没有查询到合适的意图");
@@ -110,20 +110,20 @@ public class JudgmentIntention {
             if(semantics.contains("最近")&&semantics.contains("天")){
                 //获取数字
                 int numbers = Integer.parseInt(StringUtils.getNumbers(semantics));
-                return DateUtil.dayStart(numbers);
+                return DateUtil.dayStart(-numbers);
 
             }else if(semantics.contains("最近")&&semantics.contains("周")){
                 //获取数字
                 int numbers = Integer.parseInt(StringUtils.getNumbers(semantics));
-                return DateUtil.weekStart(numbers);
+                return DateUtil.weekStart(-numbers);
             }else if(semantics.contains("最近")&&semantics.contains("月")){
                 //获取数字
                 int numbers = Integer.parseInt(StringUtils.getNumbers(semantics));
-                return DateUtil.monthStart(numbers);
+                return DateUtil.monthStart(-numbers);
             }else if(semantics.contains("最近")&&semantics.contains("年")){
                 //获取数字
                 int numbers = Integer.parseInt(StringUtils.getNumbers(semantics));
-                return DateUtil.yearStart(numbers);
+                return DateUtil.yearStart(-numbers);
             }else if(semantics.contains("月")){
                 //获取数字
                 int numbers = Integer.parseInt(StringUtils.getNumbers(semantics));

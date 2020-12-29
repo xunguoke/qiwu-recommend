@@ -13,9 +13,10 @@ public interface WatchMapper {
     /**
      * 根据渠道id查询数据
      * @param channelId 渠道id
+     * @param online
      * @return
      */
-    List<Watch> findByChannelId(String channelId);
+    List<Watch> findByChannelId(String channelId, Integer online);
 
     /**
      * 根据用户id查询作品

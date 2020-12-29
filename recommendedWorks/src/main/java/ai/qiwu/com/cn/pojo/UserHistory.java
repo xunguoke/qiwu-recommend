@@ -14,10 +14,10 @@ import java.util.Date;
 public class UserHistory {
     private Integer id;
     private String type;
-    private String work_name;
-    private String user_id;
-    private String channel_id;
-    private Date gmt_create;
-    private Date gmt_modified;
+    private String workname;
+    private String userid;
+    private String channelid;
+    private Date gmtcreate;
+    private Date gmtmodified;
 
 }

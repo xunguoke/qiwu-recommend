@@ -34,15 +34,15 @@ public class ExtractUtils {
      */
     public static DataResponse intersectionWorks(List<Watch> watches, Map map) {
         //定义两个List用于存储渠道作品名和接口作品名
-        List<String> channels = null;
-        List<String> interfaceWorks=null;
-        List<WorksPojo> worksList = null;
+        List<String> channels = new ArrayList<>();
+        List<String> interfaceWorks=new ArrayList<>();
+        List<WorksPojo> worksList = new ArrayList<>();
         PublicData publicData = new PublicData();
         //判断渠道中是否有作品
         if (watches.size() > 0) {
             //获取渠道中所有作品名
             for (Watch watch : watches) {
-                channels.add(watch.getWork_name());
+                channels.add(watch.getWorkname());
             }
             //获取接口中所有作品
             DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
@@ -88,16 +88,17 @@ public class ExtractUtils {
      */
     public static DataResponse channelWorks(List<Watch> watches, Map map) {
         //定义两个List用于存储渠道作品名和接口作品名
-        List<String> channels = null;
-        List<String> interfaceWorks=null;
+        List<String> channels = new ArrayList<>();
+        List<String> interfaceWorks=new ArrayList<>();
 
-        List<WorksPojo> worksList = null;
+        List<WorksPojo> worksList = new ArrayList<>();
         PublicData publicData = new PublicData();
 
         //获取渠道中所有作品名
         for (Watch watch : watches) {
-            channels.add(watch.getWork_name());
+            channels.add(watch.getWorkname());
         }
+        log.warn("channels:{}",channels);
         //获取接口中所有作品
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         List<WorksPojo> works = dataResponse.getWorks();
@@ -131,19 +132,21 @@ public class ExtractUtils {
      * @return
      */
     public static DataResponse playedWorks(List<Watch> watches, Map map, String uid, WatchService watchService) {
+        //查询用户玩过的作品
         List<UserHistory> byUid = TypeRecommendation.findByUid(uid, watchService);
-        //定义两个List用于存储渠道作品名和接口作品名
-        List<String> channels = null;
-        List<String> interfaceWorks=null;
+        //获取已玩作品名
+        List<String> channels = new ArrayList<>();
+        //数据库中作品名
+        List<String> interfaceWorks=new ArrayList<>();
 
-        List<WorksPojo> worksList = null;
+        List<WorksPojo> worksList = new ArrayList<>();
         PublicData publicData = new PublicData();
 
-        //获取渠道中所有作品名
+        //获取已玩作品名
         for (UserHistory watch : byUid) {
-            channels.add(watch.getWork_name());
+            channels.add(watch.getWorkname());
         }
-        //获取接口中所有作品
+        //获取数据库作品和接口作品的交集
         DataResponse dataResponse = ExtractUtils.channelWorks(watches, map);
         List<WorksPojo> works = dataResponse.getWorks();
         publicData.setLabels(dataResponse.getLabels());
@@ -151,7 +154,8 @@ public class ExtractUtils {
         for (WorksPojo work : works) {
             interfaceWorks.add(work.getName());
         }
-
+        log.warn("interfaceWorks:{}",interfaceWorks);
+        log.warn("channels:{}",channels);
         //获取交集获取作品名
         channels.retainAll(interfaceWorks);
 
@@ -179,16 +183,16 @@ public class ExtractUtils {
      */
     public static DataResponse workResult(List<Watch> watches, Map maps, List<Map.Entry<String, Date>> workTime) {
         //定义两个List用于存储渠道作品名和接口作品名
-        List<String> channels = null;
-        List<String> interfaceWorks=null;
-        List<String> historicalWorks=null;
-        List<WorksPojo> worksList = null;
-        List<Date> gameTime=null;
+        List<String> channels = new ArrayList<>();
+        List<String> interfaceWorks=new ArrayList<>();
+        List<String> historicalWorks=new ArrayList<>();
+        List<WorksPojo> worksList = new ArrayList<>();
+        List<Date> gameTime=new ArrayList<>();
         PublicData publicData = new PublicData();
 
         //todo 1.获取数据库渠道表中的作品
         for (Watch watch : watches) {
-            channels.add(watch.getWork_name());
+            channels.add(watch.getWorkname());
         }
         //todo 2.获取接口中的所有作品
         //获取接口中所有作品
@@ -203,11 +207,11 @@ public class ExtractUtils {
         for (int i = 0; i < workTime.size(); i++) {
             historicalWorks.add(workTime.get(i).getKey());
         }
-
+        log.warn("historicalWorks:{}",historicalWorks);
         //todo 4.取交集
         channels.retainAll(interfaceWorks);
         historicalWorks.retainAll(channels);
-
+        log.warn("historicalWorks:{}",historicalWorks);
         //todo 5.封装作品
         //循环遍历接口中的所有作品
         for (int j = 0; j < historicalWorks.size(); j++) {
@@ -233,7 +237,7 @@ public class ExtractUtils {
         //定义一个map集合用于存储已玩作品名和最后一次玩的时间
         HashMap<String , Date> hashMap = new HashMap<>();
         for (UserHistory userHistory : byUidOfDate) {
-            hashMap.put(userHistory.getWork_name(),userHistory.getGmt_modified());
+            hashMap.put(userHistory.getWorkname(),userHistory.getGmtmodified());
         }
         //将集合按照时间降序排序
         List<Map.Entry<String, Date>> list = new ArrayList<Map.Entry<String, Date>>(hashMap.entrySet());
@@ -391,6 +395,8 @@ public class ExtractUtils {
                 listOfWorks += botAccount + "+" + workName;
                 //设置最后返回的作品列表
                 listWorks="☛推荐" + listOfWorks + "☚";
+                //将作品名添加到集合中去
+                titleList.add(workName);
                 //判断作品是否大于三个
                 if (titleList.size()>=3){
                     //循环获取作品列表信息
@@ -411,7 +417,7 @@ public class ExtractUtils {
                     //循环获取作品列表信息
                     for (int j = 0; j < titleList.size(); j++) {
                         //判断是否是最后一个元素
-                        if(j==titleList.size()){
+                        if(j==titleList.size()-1){
                             workInformation+="《"+titleList.get(j)+"》，";
                             //封装对象后返回
                             messages.setWorksList(listWorks);
@@ -439,20 +445,101 @@ public class ExtractUtils {
      * @param strings 禁用标签
      * @return
      */
-    public static List<WorksPojo> filterDisabled(List<WorksPojo> works, List<String> strings) {
+    public static List<WorksPojo> filterDisabled(List<WorksPojo> works, List<String> strings1) {
         //定义一个集合用于保存筛选后的作品
         List<WorksPojo> worksList=new ArrayList<>();
         //循环遍历所有作品
         for (WorksPojo work : works) {
             //获取作品类型
-            List<String> labels = work.getLabels();
+            List<String> asList1 = work.getLabels();
             //取交集判断是否含有相同的标签
-            labels.retainAll(strings);
-            if(labels.size()<=0){
+            //取差集
+            List<String> asList = new ArrayList<>(asList1);
+            if(strings1!=null){
+                List<String> strings = new ArrayList<>(strings1);
+                asList.retainAll(strings);
+                if(asList.size()<=0){
+                    worksList.add(work);
+                }
+            }else{
                 worksList.add(work);
             }
         }
         return worksList;
+    }
+
+    /**
+     * 根据历史玩过的时间排序获取作品列表以及返回信息
+     * @param works
+     * @return
+     */
+    public static ReturnedMessages historicalTimeSequence(List<WorksPojo> works) {
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        //最后返回的作品列表
+        String listWorks="";
+        //最后返回的作品信息
+        String returnedMessages="";
+        //定义一个String类型的变量用于存储筛选的游戏
+        String listOfWorks = "";
+        List<String> titleList = new ArrayList<>();
+        String workInformation = "";
+
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i = 0; i < works.size(); i++) {
+            //获取作品名
+            String workName = works.get(i).getName();
+            //获取作品编号
+            String botAccount = works.get(i).getBotAccount();
+            //判断是否是最后一个元素
+            if(i==works.size()-1){
+                //设置返回作品列表
+                listOfWorks += botAccount + "+" + workName;
+                //设置最后返回的作品列表
+                listWorks="☛推荐" + listOfWorks + "☚";
+                //将作品名添加到集合中去
+                titleList.add(workName);
+                //判断作品是否大于三个
+                if (titleList.size()>=3){
+                    //循环获取作品列表信息
+                    for (int j = 0; j < 3; j++) {
+                        //判断是否是最后一个元素
+                        if(j==2){
+                            workInformation+="《"+titleList.get(j)+"》，";
+                            //封装对象后返回
+                            messages.setWorksList(listWorks);
+                            messages.setWorkInformation(workInformation);
+                            messages.setWorksName(titleList);
+                            return messages;
+                        }
+                        //设置返回作品信息
+                        workInformation+="《"+titleList.get(j)+"》、";
+                    }
+                }else{
+                    //循环获取作品列表信息
+                    for (int j = 0; j < titleList.size(); j++) {
+                        //判断是否是最后一个元素
+                        if(j==titleList.size()-1){
+                            workInformation+="《"+titleList.get(j)+"》，";
+                            //封装对象后返回
+                            messages.setWorksList(listWorks);
+                            messages.setWorkInformation(workInformation);
+                            messages.setWorksName(titleList);
+                            return messages;
+                        }
+                        //设置返回作品信息
+                        workInformation+="《"+titleList.get(j)+"》、";
+                    }
+                }
+
+            }
+            //设置返回作品列表
+            listOfWorks += botAccount + "+" + workName + ",";
+            //将作品名添加到集合中去
+            titleList.add(workName);
+        }
+        return null;
     }
 
     /**
@@ -511,6 +598,8 @@ public class ExtractUtils {
                 listOfWorks += botAccount + "+" + workName;
                 //设置最后返回的作品列表
                 listWorks="☛推荐" + listOfWorks + "☚";
+                //将作品名添加到集合中去
+                titleList.add(workName);
                 //判断作品是否大于三个
                 if (titleList.size()>=3){
                     //循环获取作品列表信息
@@ -531,7 +620,7 @@ public class ExtractUtils {
                     //循环获取作品列表信息
                     for (int j = 0; j < titleList.size(); j++) {
                         //判断是否是最后一个元素
-                        if(j==titleList.size()){
+                        if(j==titleList.size()-1){
                             workInformation+="《"+titleList.get(j)+"》，";
                             //封装对象后返回
                             messages.setWorksList(listWorks);
@@ -553,6 +642,7 @@ public class ExtractUtils {
         return null;
     }
 
+
     /**
      * 获取指定时间范围内的作品
      * @param dataResponses 所有作品
@@ -562,7 +652,7 @@ public class ExtractUtils {
     public static DataResponse latestTime(DataResponse dataResponses, String semantics) {
         List<WorksPojo> worksList = new ArrayList<>();
         //定义一个数组接收作品名
-        List<String> interfaceWorks=null;
+        List<String> interfaceWorks=new ArrayList<>();
         //获取开始时间
         String startingTime;
         //获取结束时间
@@ -591,11 +681,12 @@ public class ExtractUtils {
             //获取作品上线时间
             String r = work.getGmtApply();
             //将作品上线时间以及时间区间范围转成时间格式后比较大小
+            SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
             DateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
                 Date parse1 = dateFormat.parse(startingTime);
                 Date parse2 = dateFormat.parse(endTime);
-                Date parse3 = dateFormat.parse(r);
+                Date parse3 = formatter.parse(r);
                 //根基条件判断合适的作品
                 if(parse2.getTime()>=parse3.getTime()&& parse3.getTime()>=parse1.getTime()){
                     //满足条件获取作品名
@@ -627,15 +718,20 @@ public class ExtractUtils {
      * @param semantics
      * @return
      */
-    public static List<WorksPojo> multiConditionScreening(List<WorksPojo> works, List<String> strings, String semantics) {
+    public static List<WorksPojo> multiConditionScreening(List<WorksPojo> works, List<String> strings1, String semantics) {
         //定义一个集合用于保存筛选后的作品
         List<WorksPojo> worksList=new ArrayList<>();
         //解析语义
         String[] split = semantics.split("[+]");
         //转list
-        List<String> asList = Arrays.asList(split);
+        List<String> asList1 = Arrays.asList(split);
         //取差集
-        asList.removeAll(strings);
+        List<String> asList = new ArrayList<>(asList1);
+        if(strings1!=null){
+            List<String> strings = new ArrayList<>(strings1);
+            //取差集
+            asList.removeAll(strings);
+        }
         if(asList.size()<=0){
             return null;
         }else{
@@ -660,7 +756,7 @@ public class ExtractUtils {
      * @param semantics
      * @return
      */
-    public static List<WorksPojo> allIntentions(List<WorksPojo> works, List<String> strings, String semantics) {
+    public static List<WorksPojo> allIntentions(List<WorksPojo> works, List<String> strings1, String semantics) {
         //定义一个集合用于保存筛选后的作品
         List<WorksPojo> worksList=new ArrayList<>();
         //定义一个变量用记录用户意图个数
@@ -669,10 +765,14 @@ public class ExtractUtils {
         //解析语义
         String[] split = semantics.split("[+]");
         //转list
-        List<String> asList = Arrays.asList(split);
-        i=asList.size();
-        //取差集
-        asList.removeAll(strings);
+        List<String> asList1 = Arrays.asList(split);
+        i=asList1.size();
+        List<String> asList = new ArrayList<>(asList1);
+        if(strings1!=null){
+            List<String> strings = new ArrayList<>(strings1);
+            //取差集
+            asList.removeAll(strings);
+        }
         //判断是否少了意图
         if(asList.size()==i) {
             //循环遍历所有作品
@@ -689,6 +789,7 @@ public class ExtractUtils {
                 if (flag==true){
                     worksList.add(work);
                 }
+                flag=true;
             }
             return worksList;
 
@@ -764,7 +865,7 @@ public class ExtractUtils {
         //循环所有作品
         for (WorksPojo work : works) {
             //判断作品是否属于指定作者
-            if(work.getName().equals(semantics)){
+            if(work.getAuthorName().equals(semantics)){
                 worksList.add(work);
             }
         }
