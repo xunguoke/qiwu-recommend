@@ -65,6 +65,7 @@ public class ExtractUtils {
                     }
                 }
             }
+
             dataResponse.setWorks(worksList);
 
             //根据不同意图返回作品

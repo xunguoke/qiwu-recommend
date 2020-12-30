@@ -6,9 +6,10 @@ import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
- * 该类用于提取作品
+ * 该类用于作品按照某种方式排序
  * @author hjd
  */
 @Slf4j
@@ -27,8 +28,6 @@ public class WorkExtractionUtils {
         List<String> titleList = new ArrayList<>();
         String titleText = "";
         String listWorks= "";
-        //创建一个集合用于存储排序后的游戏名和编号
-        HashMap<String, String> game = new HashMap<>();
         //创建以个map集合用于存储免费游戏名和编号
         HashMap<String, String> freeGameNumber = new HashMap<>();
         //创建以个map集合用于存储收费游戏名和编号
@@ -158,7 +157,6 @@ public class WorkExtractionUtils {
                     String number = freeGameNumber.get(freeName);
                     text += number + "+" + freeName + ",";
                     titleList.add(freeName);
-                    game.put(freeName, number);
                 }
                 if (i == list2.size() - 1) {
                     //获取收费游戏名
@@ -200,8 +198,192 @@ public class WorkExtractionUtils {
                 text += number2 + "+" + freeGameName2 + ",";
 
                 titleList.add(freeGameName2);
-                game.put(freeGameName2, number2);
             }
+        }
+        return null;
+    }
+
+    /**
+     * 将作品按照分数排序
+     * @param dataResponses 作品对象
+     * @return
+     */
+    public static ReturnedMessages scoreSort(DataResponse dataResponses) {
+        //获取所有作品
+        List<WorksPojo> works = dataResponses.getWorks();
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        //获取返回信息
+        String text = "";
+        List<String> titleList = new ArrayList<>();
+        String titleText = "";
+        String listWorks= "";
+        //创建一个集合用于存储游戏名，游戏编号
+        HashMap<String, String> gameNumber = new HashMap<>();
+        //创建一个集合用于存储游戏名，游戏评分
+        HashMap<String, Double> gameRating = new HashMap<>();
+
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            //获取游戏名
+            String gameName = work.getName();
+            log.warn("gameName:{}", gameName);
+            //获取游戏分数
+            Double fraction = work.getScore();
+            log.warn("fraction:{}", fraction);
+            //获取游戏编号
+            String botAccount = work.getBotAccount();
+            log.warn("botAccount:{}", botAccount);
+            //存入游戏编号集合
+            gameNumber.put(gameName, botAccount);
+            //存入游戏评分集合
+            gameRating.put(gameName, fraction);
+        }
+
+        //将游戏按照评分降序排序
+        List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
+            @Override
+            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i = 0; i < list.size(); i++) {
+            //判断是否最后
+            if (i == list.size() - 1) {
+                //获取游戏名
+                String freeName = list.get(i).getKey();
+                //获取游戏名编号
+                String number = gameNumber.get(freeName);
+                text += number + "+" + freeName;
+                listWorks="☛推荐" + text + "☚";
+                titleList.add(freeName);
+
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
+                    }
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
+                    }
+                }
+
+                //封装对象后返回
+                messages.setWorksList(listWorks);
+                messages.setWorkInformation(titleText);
+                messages.setWorksName(titleList);
+                return messages;
+            }
+            //获取免费游戏名
+            String freeName = list.get(i).getKey();
+            //获取免费游戏名编号
+            String number = gameNumber.get(freeName);
+            text += number + "+" + freeName + ",";
+            titleList.add(freeName);
+        }
+        return null;
+    }
+
+    /**
+     * 将作品按照时间排序
+     * @param dataResponse 作品对象
+     * @return
+     */
+    public static ReturnedMessages timeOrder(DataResponse dataResponse) {
+        //获取所有作品
+        List<WorksPojo> works = dataResponse.getWorks();
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        //获取返回信息
+        String text = "";
+        List<String> titleList = new ArrayList<>();
+        String titleText = "";
+        String listWorks= "";
+        //创建一个集合用于存储游戏名，游戏编号
+        HashMap<String, String> gameNumber = new HashMap<>();
+        //创建一个集合用于存储游戏名，游戏上线时间
+        HashMap<String, String> gameLaunchTime = new HashMap<>();
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            //获取游戏名
+            String gameName = work.getName();
+            //获取游戏上线时间
+            String gmtApply = work.getGmtApply();
+            //将时间转换成指定格式
+            String timeOnline = CommonlyUtils.dealDateFormat(gmtApply);
+            //获取游戏编号
+            String botAccount = work.getBotAccount();
+            //存入游戏编号集合
+            gameNumber.put(gameName, botAccount);
+            //存入游戏上线时间集合
+            gameLaunchTime.put(gameName, timeOnline);
+
+        }
+
+        //将游戏上线时间降序排序
+        List<Map.Entry<String, String>> list = new ArrayList<Map.Entry<String, String>>(gameLaunchTime.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, String>>() {
+            @Override
+            public int compare(Map.Entry<String, String> o1, Map.Entry<String, String> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i = 0; i < list.size(); i++) {
+            //判断是否最后
+            if (i == list.size() - 1) {
+                //获取游戏名
+                String freeName = list.get(i).getKey();
+                //获取游戏名编号
+                String number = gameNumber.get(freeName);
+                text += number + "+" + freeName;
+                listWorks="☛推荐" + text + "☚";
+                titleList.add(freeName);
+
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
+                    }
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
+                    }
+                }
+
+                //封装对象后返回
+                messages.setWorksList(listWorks);
+                messages.setWorkInformation(titleText);
+                messages.setWorksName(titleList);
+                return messages;
+            }
+            //获取免费游戏名
+            String freeName = list.get(i).getKey();
+            //获取免费游戏名编号
+            String number = gameNumber.get(freeName);
+            text += number + "+" + freeName + ",";
+            titleList.add(freeName);
         }
         return null;
     }
