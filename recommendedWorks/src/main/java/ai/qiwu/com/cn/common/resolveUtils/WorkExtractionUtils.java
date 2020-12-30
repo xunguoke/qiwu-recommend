@@ -6,6 +6,7 @@ import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import ai.qiwu.com.cn.pojo.connectorPojo.TemporaryWorks;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -467,6 +468,287 @@ public class WorkExtractionUtils {
             String number2 = workInformations.get(i).getBotAccount();
             text += number2 + "+" + gameName2 + ",";
             titleList.add(gameName2);
+        }
+        return null;
+    }
+
+    /**
+     * 按照作者的作品数量进行排序
+     * @param typeList 所有作品的作者
+     * @return
+     */
+    public static ReturnedMessages numberOfAuthorSWorks(List<String> typeList) {
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        String titleText="";
+        //获取作者作品数量集合
+        Map<String, Integer> maps = new HashMap<>();
+        for (String s : typeList) {
+            Integer count=maps.get(s);
+            maps.put(s,(count==null)? 1:count+1);
+        }
+        //将游戏按照数量降序排序
+        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(maps.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        log.warn("list:{}",list);
+        //循环获取作者名
+        for(int i=0;i<3;i++){
+            if(i==list.size()){
+                //获取作者名
+                titleText+=list.get(i).getKey()+"，";
+                String recommendName="目前作者有："+titleText+"你可以说：推荐"+list.get(0).getKey()+"的作品给我";
+                //封装对象后返回
+                messages.setWorkInformation(recommendName);
+                return messages;
+
+            }else if(i==2){
+                titleText+=list.get(i).getKey()+"，";
+            }else {
+                //获取作者名
+                titleText+=list.get(i).getKey()+"、";
+            }
+
+        }
+
+        String recommendName="目前作者有："+titleText+"你可以说：推荐"+list.get(0).getKey()+"的作品给我";
+        //封装对象后返回
+        messages.setWorkInformation(recommendName);
+        return messages;
+    }
+
+    /**
+     * 按照收藏人数排序
+     * @param works 所有作品
+     * @param semantics 语义
+     * @return
+     */
+    public static ReturnedMessages numberOfCollections(List<WorksPojo> works, String semantics) {
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        //获取返回信息
+        String text = "";
+        List<String> titleList = new ArrayList<>();
+        String titleText = "";
+        String listWorks= "";
+        //创建一个集合用于存储游戏名，游戏编号
+        HashMap<String, String> gameNumber = new HashMap<>();
+        //创建一个集合用于存储游戏名，游戏收藏人数
+        HashMap<String, Integer> gameRating = new HashMap<>();
+
+        //循环所有作品，
+        for (WorksPojo work : works) {
+            //获取作品收藏人数
+            int plotCount = work.getPlotCount();
+            //获取游戏名
+            String gameName = work.getName();
+            log.warn("gameName:{}", gameName);
+            //获取游戏编号
+            String botAccount = work.getBotAccount();
+            log.warn("botAccount:{}", botAccount);
+            //存入游戏编号集合
+            gameNumber.put(gameName, botAccount);
+            //存入游戏人数集合
+            gameRating.put(gameName, plotCount);
+
+        }
+
+
+        //将游戏按照评分降序排序
+        List<Map.Entry<String, Integer>> list = new ArrayList<Map.Entry<String, Integer>>(gameRating.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
+            @Override
+            public int compare(Map.Entry<String, Integer> o1, Map.Entry<String, Integer> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        log.warn("list:{}", list);
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i = 0; i < list.size(); i++) {
+            //判断是否最后
+            if (i == list.size() - 1) {
+                //获取游戏名
+                String freeName = list.get(i).getKey();
+                //获取游戏名编号
+                String number = gameNumber.get(freeName);
+                text += number + "+" + freeName;
+                listWorks="☛推荐" + text + "☚";
+                titleList.add(freeName);
+                int a = Integer.parseInt(semantics);
+                if (titleList.size() >= a) {
+                    for (int j = 0; j < a; j++) {
+
+                        if (j == a-1) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
+                    }
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
+                    }
+                }
+
+                //封装对象后返回
+                messages.setWorksList(listWorks);
+                messages.setWorkInformation(titleText);
+                messages.setWorksName(titleList);
+                return messages;
+            }
+            //获取免费游戏名
+            String freeName = list.get(i).getKey();
+            //获取免费游戏名编号
+            String number = gameNumber.get(freeName);
+            text += number + "+" + freeName + ",";
+            titleList.add(freeName);
+        }
+        return null;
+    }
+
+    /**
+     * 筛选类型，设置返回的类型
+     * @param stringList
+     * @param range
+     * @return
+     */
+    public static ReturnedMessages returnType(RedisTemplate redisTemplate, String uid,List<String> stringList, List<String> range) {
+        List<String> typeList = new ArrayList<>();
+        List<String> titleList = new ArrayList<>();
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        String titleText = "";
+        for (String s : stringList) {
+            typeList.add(s);
+        }
+        stringList.removeAll(range);
+        //判断取差集后的labels长度
+        if (stringList.size() <= 3) {
+            for (String s : stringList) {
+                titleList.add(s);
+            }
+            typeList.removeAll(stringList);
+            for (int j = 0; j < (3 - stringList.size()); j++) {
+                titleList.add(typeList.get(j));
+            }
+            //删除Redis中所有的键
+            redisTemplate.delete(uid + "labels");
+            //将数据添加到redis
+            redisTemplate.opsForList().leftPushAll(uid + "labels", titleList);
+            for (int i = 0; i < titleList.size(); i++) {
+                if (i == titleList.size() - 1) {
+                    titleText += titleList.get(i) + "，";
+                    //封装对象后返回
+                    messages.setWorkInformation(titleText);
+                    messages.setWorksName(titleList);
+                    return messages;
+                }
+                titleText += titleList.get(i) + "、";
+            }
+
+        } else {
+            //循环遍历3个类型
+            for (int i = 0; i < 3; i++) {
+                range.add(stringList.get(i));
+                titleList.add(stringList.get(i));
+            }
+            for (int i = 0; i < titleList.size(); i++) {
+                if (i == titleList.size() - 1) {
+                    titleText += titleList.get(i) + "，";
+                    //删除Redis中所有的键
+                    //redisTemplate.boundListOps(uid).remove(0);
+                    redisTemplate.delete(uid + "labels");
+                    //将数据添加到redis
+                    redisTemplate.opsForList().leftPushAll(uid + "labels", range);
+                    //封装对象后返回
+                    messages.setWorkInformation(titleText);
+                    messages.setWorksName(titleList);
+                    return messages;
+                }
+                titleText += titleList.get(i) + "、";
+            }
+
+        }
+        return null;
+    }
+
+    /**
+     * 筛选系列
+     * @param redisTemplate
+     * @param uid
+     * @param seriesName
+     * @param range
+     * @return
+     */
+    public static ReturnedMessages seriesScreening(RedisTemplate redisTemplate, String uid, List<String> seriesName, List<String> range) {
+        List<String> typeList = new ArrayList<>();
+        List<String> titleList = new ArrayList<>();
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        String titleText = "";
+        //取差集
+        for (String s : seriesName) {
+            typeList.add(s);
+        }
+        log.warn("aaaaa:{}",typeList);
+        seriesName.removeAll(range);
+        log.warn("ssss:{}",seriesName);
+        //判断取差集后的labels长度
+        if(seriesName.size()<=3){
+            for (String s : seriesName) {
+                titleList.add(s);
+            }
+            log.warn("bbbbb:{}",titleList);
+            typeList.removeAll(seriesName);
+            log.warn("ccxcc:{}",typeList);
+            for (int j=0;j<(3-seriesName.size());j++){
+                titleList.add(typeList.get(j));
+            }
+            //删除Redis中所有的键
+            redisTemplate.delete(uid);
+            //将数据添加到redis
+            redisTemplate.opsForList().leftPushAll(uid,titleList);
+            for (int i = 0; i < titleList.size(); i++) {
+                if(i==titleList.size()-1){
+                    titleText+=titleList.get(i)+"，";
+                    //封装对象后返回
+                    messages.setWorkInformation(titleText);
+                    messages.setWorksName(titleList);
+                    return messages;
+                }
+                titleText+=titleList.get(i)+"、";
+            }
+
+        }else{
+            //循环遍历3个类型
+            for(int i=0;i<3;i++){
+                range.add(seriesName.get(i));
+                titleList.add(seriesName.get(i));
+            }
+            for (int i = 0; i < titleList.size(); i++) {
+                if(i==titleList.size()-1){
+                    titleText+=titleList.get(i)+"，";
+                    //删除Redis中所有的键
+                    //redisTemplate.boundListOps(uid).remove(0);
+                    redisTemplate.delete(uid);
+                    //将数据添加到redis
+                    redisTemplate.opsForList().leftPushAll(uid,range);
+                    //封装对象后返回
+                    messages.setWorkInformation(titleText);
+                    messages.setWorksName(titleList);
+                    return messages;
+                }
+                titleText+=titleList.get(i)+"、";
+            }
+
         }
         return null;
     }

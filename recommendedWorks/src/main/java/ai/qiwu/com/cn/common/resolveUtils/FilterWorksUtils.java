@@ -6,10 +6,11 @@ import ai.qiwu.com.cn.pojo.connectorPojo.TemporaryWorks;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 /**
- * 该类主要用于筛选作品
+ * 该类主要用于筛选作品，类型
  * @author hjd
  */
 public class FilterWorksUtils {
@@ -125,5 +126,88 @@ public class FilterWorksUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * 根据意图筛选指定人群类型的作品
+     * @param dataResponse 封装的作品信息
+     * @param semantics 用户意图
+     * @return
+     */
+    public static List<WorksPojo> crowdType(DataResponse dataResponse, String semantics) {
+        List<WorksPojo> works = new ArrayList<>();
+        for (WorksPojo work : dataResponse.getWorks()) {
+            //获取作品类型
+            List<String> suitCrowds = work.getSuitCrowds();
+            if(suitCrowds.contains(semantics)){
+                works.add(work);
+            }
+        }
+        return works;
+    }
+
+    /**
+     * 根据系列筛选作品
+     * @param works
+     * @param semantics
+     * @return
+     */
+    public static List<WorksPojo> seriesScreening(List<WorksPojo> works, String semantics) {
+        List<WorksPojo> worksa = new ArrayList<>();
+        for (WorksPojo work : works) {
+            //获取作品系列
+            String seriesName = work.getSeriesName();
+            if(seriesName.equals(semantics)){
+                worksa.add(work);
+            }
+        }
+        return worksa;
+    }
+
+    /**
+     * 获取所有类型
+     * @param works
+     * @param strings
+     * @return
+     */
+    public static List<String> typeSelection(List<WorksPojo> works, List<String> strings) {
+        //定义一个String类型的变量用于存储筛选的游戏
+        List<String> labels = new ArrayList<>();
+        List<String> jy = new ArrayList<>();
+        jy.add("New");
+        jy.add("VIP");
+
+        //循环所有作品获取作品类型
+        for (int a = 0; a < works.size(); a++) {
+            List<String> multipleLabels = works.get(a).getLabels();
+            //循环标签中的类型
+            for (String multipleLabel : multipleLabels) {
+                labels.add(multipleLabel);
+            }
+        }
+        HashSet hashSet = new HashSet(labels);
+        labels.clear();
+        labels.addAll(hashSet);
+        labels.removeAll(jy);
+        labels.removeAll(strings);
+        return labels;
+    }
+
+    /**
+     * 获取所有系列
+     * @param works
+     * @return
+     */
+    public static List<String> allSeries(List<WorksPojo> works) {
+        List<String> seriesName = new ArrayList<>();
+        for (WorksPojo work : works) {
+            if (work.getSeriesName() != null && !work.getSeriesName().equals("")) {
+                seriesName.add(work.getSeriesName());
+            }
+        }
+        HashSet hashSet=new HashSet(seriesName);
+        seriesName.clear();
+        seriesName.addAll(hashSet);
+        return seriesName;
     }
 }
