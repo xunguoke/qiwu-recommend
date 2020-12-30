@@ -6,6 +6,7 @@ import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.BotConfig;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.ReturnedMessages;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
+import ai.qiwu.com.cn.pojo.connectorPojo.TemporaryWorks;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import ai.qiwu.com.cn.service.handleService.WatchService;
 import com.alibaba.fastjson.JSONObject;
@@ -56,7 +57,6 @@ public class IntentionUtils {
         }
     }
 
-
     /**
      * 手表推荐之类型推荐
      *
@@ -81,7 +81,7 @@ public class IntentionUtils {
             //将作品存到缓存中去
             CacheUtils.cacheSave(redisTemplate, worksPoJos);
             //将作品按照分数排序,返回信息
-            ReturnedMessages returnedMessages = WorkExtractionUtils.scoreSort(dataResponses);
+            ReturnedMessages returnedMessages = WorkExtractionUtils.scoreSort(dataResponses.getWorks());
             String work = returnedMessages.getWorkInformation();
             String workInformation = "为您推荐以上作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
             //封装返回结果信息
@@ -127,148 +127,32 @@ public class IntentionUtils {
      * @return
      */
     public static String similarWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取渠道ID
+        String channelId = intent.getChannelId();
         //请求推荐作品接口，返回所有作品
-        Map map = TypeRecommendation.getWorks();
-        //查询数据库中渠道id相同的
-        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
-        //获取交集
-        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //将map封装成作品对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         //获取语义
         String semantics = intent.getWorks();
-        List<WorksPojo> worksList=new ArrayList<>();
-
-        //用于存储临时数据
-        List<WorkInformation> listWork = new ArrayList<WorkInformation>();
-        //用于存储用户说的作品类型列表
-        List<String> typeList = null;
-        //定义一个String类型的变量用于存储筛选的游戏
-        String text = "";
-        String title = "";
-        List<String> titleList = new ArrayList<>();
-        String titleText = "";
-
-        //获取works将map转对象
-        List<WorksPojo> works = dataResponse.getWorks();
-
-        //获取作品类型列表
-        for (WorksPojo work : works) {
-            //获取游戏名
-            String gameName1 = work.getName();
-            //判断游戏名是否和语义相同
-            if (gameName1.equals(semantics)) {
-                //获取类型列表
-                typeList = work.getLabels();
-            }
+        //从接口中获取禁用标签
+        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        //筛选与意图作品标签相同的作品
+        TemporaryWorks temporaryWorks = FilterWorksUtils.scoreLabel(dataResponse, semantics, strings);
+        if(temporaryWorks.getWorkInformations().size()>0){
+            //将作品存到缓存中去
+            CacheUtils.cacheSave(redisTemplate, temporaryWorks.getWorksPojos());
+            //将作品按照时间,标签相似数量排序,返回信息
+            ReturnedMessages returnedMessages = WorkExtractionUtils.timeStamp(temporaryWorks);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "为您找到和《" + semantics + "》类似的作品：" + work + "快对我说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return ResultUtils.packageResult(workInformation, returnedMessages.getWorksList());
+        }else{
+            String workInformation = "对不起，暂时没有和《" + semantics + "》相似的作品";
+            String listOfWorks = "对不起，暂时没有和《" + semantics + "》相似的作品";
+            return ResultUtils.packageResult(workInformation, listOfWorks);
         }
-
-        //获取相似作品
-        for (WorksPojo work : works) {
-            //获取游戏名
-            String gameName = work.getName();
-            log.warn("gameName2:{}", gameName);
-            if (!gameName.equals(semantics)) {
-                worksList.add(work);
-                //获取游戏分数
-                Double fraction = work.getScore();
-                log.warn("fraction:{}", fraction);
-                //获取游戏编号
-                String botAccount = work.getBotAccount();
-                log.warn("botAccount:{}", botAccount);
-                //获取类型列表
-                List<String> labels = work.getLabels();
-                labels.retainAll(typeList);
-                //判断有相同标签才存入集合
-                int size = labels.size();
-                log.warn("size:{}", size);
-                log.warn("labels:{}", labels);
-                if (size > 0) {
-                    //创建对象传入参数
-                    WorkInformation information = new WorkInformation(gameName, botAccount, fraction, size);
-                    listWork.add(information);
-                }
-
-            }
-        }
-        if (listWork.size() <= 0) {
-            String recommendText = "对不起，暂时没有和《" + semantics + "》相似的作品";
-            String recommendName = "对不起，暂时没有和《" + semantics + "》相似的作品";
-            return TypeRecommendation.packageResult(recommendName, recommendText);
-        }
-
-        //清空上一轮推荐的作品缓存
-        while (redisTemplate.opsForList().size("worksList")>0){
-            redisTemplate.opsForList().leftPop("worksList");
-        }
-        //将作品信息添加到缓存
-        redisTemplate.opsForList().rightPushAll("worksList",worksList);
-        //设置过期时间
-        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
-
-        //循环集合按照Size倒序排序，size相同时按照评分倒序
-        Collections.sort(listWork, new Comparator<WorkInformation>() {
-            @Override
-            public int compare(WorkInformation o1, WorkInformation o2) {
-                Integer s1 = o1.getSize();
-                Integer s2 = o2.getSize();
-
-                int temp = s2.compareTo(s1);
-
-                if (temp != 0) {
-                    return temp;
-                }
-
-                double m1 = o1.getFraction();
-                double m2 = o2.getFraction();
-
-                BigDecimal data1 = new BigDecimal(m1);
-                BigDecimal data2 = new BigDecimal(m2);
-
-                return data2.compareTo(data1);
-            }
-        });
-        log.warn("listWork:{}", listWork);
-        //循环遍历集合，提取游戏名游戏编号
-        for (int i = 0; i < listWork.size(); i++) {
-            //判断是否是最后
-            if (i == listWork.size() - 1) {
-                //获取游戏名
-                String gameName2 = listWork.get(i).getGameName();
-                //获取收费游戏名编号
-                String number2 = listWork.get(i).getBotAccount();
-                text += number2 + "+" + gameName2;
-                titleList.add(gameName2);
-
-                if (titleList.size() >= 3) {
-                    for (int j = 0; j < 3; j++) {
-
-                        if (j == 2) {
-                            titleText += "《" + titleList.get(j) + "》，";
-                        }else {
-                            titleText += "《" + titleList.get(j) + "》、";
-                        }
-                    }
-                } else {
-                    for (int y = 0; y < titleList.size(); y++) {
-                        if (y == titleList.size() - 1) {
-                            titleText += "《" + titleList.get(y) + "》，";
-                        }else {
-                            titleText += "《" + titleList.get(y) + "》、";
-                        }
-                    }
-                }
-                String recommendText = "☛推荐" + text + "☚";
-                String recommendName = "为您找到和《" + semantics + "》类似的作品：" + titleText + "快对我说：打开" + titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName, recommendText);
-            }
-
-            //获取游戏名
-            String gameName2 = listWork.get(i).getGameName();
-            //获取收费游戏名编号
-            String number2 = listWork.get(i).getBotAccount();
-            text += number2 + "+" + gameName2 + ",";
-            titleList.add(gameName2);
-        }
-        return null;
     }
 
     /**
@@ -276,118 +160,30 @@ public class IntentionUtils {
      * @return
      */
     public static String authorWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
-        //请求推荐作品接口，返回所有作品
-        Map map = TypeRecommendation.getWorks();
-        //查询数据库中渠道id相同的
-        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
-        //获取交集
-        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取渠道ID
+        String channelId = intent.getChannelId();
         //获取语义
         String semantics = intent.getWorks();
-        List<WorksPojo> worksList =new ArrayList<>();
-
-        //定义一个String类型的变量用于存储筛选的游戏
-        String text = "";
-        String title = "";
-        List<String> titleList = new ArrayList<>();
-        String titleText = "";
-        //创建一个集合用于存储游戏名，游戏编号
-        HashMap<String, String> gameNumber = new HashMap<>();
-        //创建一个集合用于存储游戏名，游戏评分
-        HashMap<String, Double> gameRating = new HashMap<>();
-
-        //获取works将map转对象
-        List<WorksPojo> works = dataResponse.getWorks();
-
-        //循环所有作品，
-        for (WorksPojo work : works) {
-            //获取作者名字
-            String authorName = work.getAuthorName();
-            if (authorName.equals(semantics)) {
-                worksList.add(work);
-                //获取游戏名
-                String gameName = work.getName();
-                log.warn("gameName:{}", gameName);
-                //获取游戏分数
-                Double fraction = work.getScore();
-                log.warn("fraction:{}", fraction);
-                //获取游戏编号
-                String botAccount = work.getBotAccount();
-                log.warn("botAccount:{}", botAccount);
-                //存入游戏编号集合
-                gameNumber.put(gameName, botAccount);
-                //存入游戏评分集合
-                gameRating.put(gameName, fraction);
-            }
+        //请求推荐作品接口，返回所有作品
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //将map封装成作品对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        //筛选指定作者的作品
+        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponse, semantics);
+        if (worksPoJos.size()>0){
+            //将作品存到缓存中去
+            CacheUtils.cacheSave(redisTemplate, worksPoJos);
+            //将作品按照时间分数排序,返回信息
+            ReturnedMessages returnedMessages = WorkExtractionUtils.scoreSort(worksPoJos);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "为您找到" + semantics + "的作品：" + work + "快对我说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return ResultUtils.packageResult(workInformation, returnedMessages.getWorksList());
+        }else{
+            String workInformation ="对不起，暂时没有" + semantics + "的作品";
+            String listOfWorks = "对不起，暂时没有" + semantics + "的作品";
+            return ResultUtils.packageResult(workInformation, listOfWorks);
         }
-
-
-
-        //将游戏按照评分降序排序
-        List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameRating.entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
-            @Override
-            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-                return o2.getValue().compareTo(o1.getValue());
-            }
-        });
-
-        if (list.size() <= 0) {
-            String recommendText = "对不起，暂时没有" + semantics + "的作品";
-            String recommendName = "对不起，暂时没有" + semantics + "的作品";
-            return TypeRecommendation.packageResult(recommendName, recommendText);
-        }
-//清空上一轮推荐的作品缓存
-        while (redisTemplate.opsForList().size("worksList")>0){
-            redisTemplate.opsForList().leftPop("worksList");
-        }
-        //将作品信息添加到缓存
-        redisTemplate.opsForList().rightPushAll("worksList",worksList);
-        //设置过期时间
-        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
-        //循环遍历集合，提取游戏名游戏编号
-        for (int i = 0; i < list.size(); i++) {
-            //判断是否是最后
-            if (i == list.size() - 1) {
-                //获取游戏名
-                String gameName2 = list.get(i).getKey();
-                //获取游戏名编号
-                String number2 = gameNumber.get(gameName2);
-                text += number2 + "+" + gameName2;
-                titleList.add(gameName2);
-
-                if (titleList.size() >= 3) {
-                    for (int j = 0; j < 3; j++) {
-
-                        if (j == 2) {
-                            titleText += "《" + titleList.get(j) + "》，";
-                        }else {
-                            titleText += "《" + titleList.get(j) + "》、";
-                        }
-                    }
-                } else {
-                    for (int y = 0; y < titleList.size(); y++) {
-                        if (y == titleList.size() - 1) {
-                            titleText += "《" + titleList.get(y) + "》，";
-                        }else {
-                            titleText += "《" + titleList.get(y) + "》、";
-                        }
-                    }
-                }
-                String recommendText = "☛推荐" + text + "☚";
-                String recommendName = "为您找到" + semantics + "的作品：" + titleText + "快对我说：打开" + titleList.get(0);
-                return TypeRecommendation.packageResult(recommendName, recommendText);
-            }
-
-            //获取游戏名
-            String gameName2 = list.get(i).getKey();
-            //获取收费游戏名编号
-            String number2 = gameNumber.get(gameName2);
-            text += number2 + "+" + gameName2 + ",";
-            titleList.add(gameName2);
-
-        }
-        return null;
     }
 
     /**
@@ -395,88 +191,27 @@ public class IntentionUtils {
      * @return
      */
     public static String typeOfWork(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
-        //请求推荐作品接口，返回所有作品
-        Map map = TypeRecommendation.getWorks();
-        //查询数据库中渠道id相同的
-        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
-        //获取交集
-        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
+        //获取渠道ID
+        String channelId = intent.getChannelId();
         //获取语义
         String semantics = intent.getWorks();
-
-        //定义一个String类型的变量用于存储筛选的游戏
-        String title = "";
-        List<String> jy = new ArrayList<>();
-        jy.add("New");
-        jy.add("VIP");
-        //获取works将map转对象
-        List<WorksPojo> works = dataResponse.getWorks();
-
-        //调用接口获取设备中的数据
-        List<BotConfig> botConfig = TypeRecommendation.getBotConfig();
-
-        //循环所有作品
-        for (WorksPojo work : works) {
-            //获取游戏名
-            String gameName = work.getName();
-            //获取作品类型
-            List<String> labels = work.getLabels();
-            labels.removeAll(jy);
-            //判断是否是用户所说的作品
-            if (gameName.equals(semantics)) {
-                //循环所有设备
-                for (BotConfig config : botConfig) {
-                    //获取渠道id
-                    String recommendBotAccount = config.getRecommendBotAccount();
-                    //获取作品渠道id
-                    String botAccount = work.getBotAccount();
-                    //判断作品渠道id是否等于设备渠道id
-                    if (botAccount.equals(recommendBotAccount)) {
-                        //获取禁用标签
-                        String labelBlacklist = config.getLabelBlacklist();
-                        log.warn("labelBlacklist:{}",labelBlacklist);
-                        //去除空格
-                        String replace = labelBlacklist.replace(" ", "");
-                        //根据中文或英文逗号进行分割
-                        String regex = ",|，";
-                        String[] blacklist = replace.split(regex);
-                        List<String> asList = Arrays.asList(blacklist);
-                        labels.removeAll(asList);
-                        if (labels.size() > 0) {
-                            for (int x = 0; x < labels.size(); x++) {
-                                if (x == labels.size()-1) {
-                                    title += labels.get(x);
-                                }else {
-                                    title += labels.get(x) + ",";
-                                }
-                            }
-                            String recommendText = "";
-                            String recommendName = "清新传没有作品类型哦";
-                            return TypeRecommendation.packageResult(recommendName, recommendText);
-                        }
-                    }
-                }
-                if (labels.size() > 0) {
-                    for (int x = 0; x < labels.size(); x++) {
-                        if (x == labels.size()-1) {
-                            title += labels.get(x);
-                        }else {
-                            title += labels.get(x) + "、";
-                        }
-
-                    }
-                }
-                String recommendText = "";
-                String recommendName = gameName + "的类型是：" + title;
-                return TypeRecommendation.packageResult(recommendName, recommendText);
-            }
-
-
+        //请求推荐作品接口，返回所有作品
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //将map封装成作品对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        //从接口中获取禁用标签
+        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        //筛选指定作品的类型
+        String type = FilterWorksUtils.designatedWorks(dataResponse, semantics, strings);
+        if (type == "" || type == null) {
+            String workInformation = "清新传没有作品类型哦";
+            String listOfWorks = "清新传没有作品类型哦";
+            return ResultUtils.packageResult(workInformation, listOfWorks);
+        } else {
+            String workInformation = type;
+            String listOfWorks = "";
+            return ResultUtils.packageResult(workInformation, listOfWorks);
         }
-
-        String recommendText = "";
-        String recommendName = "没有清新传这个作品";
-        return TypeRecommendation.packageResult(recommendName, recommendText);
     }
 
 

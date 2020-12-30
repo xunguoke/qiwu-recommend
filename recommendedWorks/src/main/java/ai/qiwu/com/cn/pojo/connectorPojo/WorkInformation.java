@@ -1,13 +1,17 @@
 package ai.qiwu.com.cn.pojo.connectorPojo;
 
+import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 /**
  * 用于存储临时作品信息
  * @author hjd
  */
+
 @Data
 public class WorkInformation {
     /**
@@ -26,6 +30,7 @@ public class WorkInformation {
      * 作品同样类型数量
      */
     private Integer size;
+
 
     public WorkInformation(String gameName, String botAccount, Double fraction, Integer size) {
         this.gameName = gameName;

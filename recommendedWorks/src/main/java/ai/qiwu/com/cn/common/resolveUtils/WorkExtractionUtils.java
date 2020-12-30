@@ -3,10 +3,12 @@ package ai.qiwu.com.cn.common.resolveUtils;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.ReturnedMessages;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
+import ai.qiwu.com.cn.pojo.connectorPojo.TemporaryWorks;
+import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import lombok.extern.slf4j.Slf4j;
 
+import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 该类用于作品按照某种方式排序
@@ -205,12 +207,10 @@ public class WorkExtractionUtils {
 
     /**
      * 将作品按照分数排序
-     * @param dataResponses 作品对象
+     * @param works 作品集合
      * @return
      */
-    public static ReturnedMessages scoreSort(DataResponse dataResponses) {
-        //获取所有作品
-        List<WorksPojo> works = dataResponses.getWorks();
+    public static ReturnedMessages scoreSort(List<WorksPojo> works) {
         //创建返回信息对象
         ReturnedMessages messages = new ReturnedMessages();
         //获取返回信息
@@ -384,6 +384,89 @@ public class WorkExtractionUtils {
             String number = gameNumber.get(freeName);
             text += number + "+" + freeName + ",";
             titleList.add(freeName);
+        }
+        return null;
+    }
+
+    /**
+     * 作品按照时间，标签相似数量排序
+     * @param temporaryWorks 作品临时数据
+     * @return
+     */
+    public static ReturnedMessages timeStamp(TemporaryWorks temporaryWorks) {
+        //创建返回信息对象
+        ReturnedMessages messages = new ReturnedMessages();
+        //获取返回信息
+        String text = "";
+        List<String> titleList = new ArrayList<>();
+        String titleText = "";
+        String listWorks= "";
+        List<WorkInformation> workInformations = temporaryWorks.getWorkInformations();
+        //循环集合按照Size倒序排序，size相同时按照评分倒序
+        Collections.sort(workInformations, new Comparator<WorkInformation>() {
+            @Override
+            public int compare(WorkInformation o1, WorkInformation o2) {
+                Integer s1 = o1.getSize();
+                Integer s2 = o2.getSize();
+
+                int temp = s2.compareTo(s1);
+
+                if (temp != 0) {
+                    return temp;
+                }
+
+                double m1 = o1.getFraction();
+                double m2 = o2.getFraction();
+
+                BigDecimal data1 = new BigDecimal(m1);
+                BigDecimal data2 = new BigDecimal(m2);
+
+                return data2.compareTo(data1);
+            }
+        });
+
+        //循环遍历集合，提取游戏名游戏编号
+        for (int i = 0; i < workInformations.size(); i++) {
+            //判断是否是最后
+            if (i == workInformations.size() - 1) {
+                //获取游戏名
+                String gameName2 = workInformations.get(i).getGameName();
+                //获取收费游戏名编号
+                String number2 = workInformations.get(i).getBotAccount();
+                text += number2 + "+" + gameName2;
+                titleList.add(gameName2);
+
+                if (titleList.size() >= 3) {
+                    for (int j = 0; j < 3; j++) {
+
+                        if (j == 2) {
+                            titleText += "《" + titleList.get(j) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(j) + "》、";
+                        }
+                    }
+                } else {
+                    for (int y = 0; y < titleList.size(); y++) {
+                        if (y == titleList.size() - 1) {
+                            titleText += "《" + titleList.get(y) + "》，";
+                        }else {
+                            titleText += "《" + titleList.get(y) + "》、";
+                        }
+                    }
+                }
+                //封装对象后返回
+                messages.setWorksList(listWorks);
+                messages.setWorkInformation(titleText);
+                messages.setWorksName(titleList);
+                return messages;
+            }
+
+            //获取游戏名
+            String gameName2 = workInformations.get(i).getGameName();
+            //获取收费游戏名编号
+            String number2 = workInformations.get(i).getBotAccount();
+            text += number2 + "+" + gameName2 + ",";
+            titleList.add(gameName2);
         }
         return null;
     }
