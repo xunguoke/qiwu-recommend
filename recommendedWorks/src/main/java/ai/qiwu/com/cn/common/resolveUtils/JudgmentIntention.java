@@ -22,7 +22,7 @@ public class JudgmentIntention {
      */
     public static String judgmentIntention(HttpServletRequest request, WatchService watchService, RedisTemplate redisTemplate) {
         //1.获取请求数据,提取用户需求信息
-        IntentionRequest intent = TypeRecommendation.getIntent(request);
+        IntentionRequest intent = ResolveUtil.parsingRequest(request);
         String intention = intent.getIntention();
         //判断用户具体信息
         if(intention.equals("手表推荐之推荐")){

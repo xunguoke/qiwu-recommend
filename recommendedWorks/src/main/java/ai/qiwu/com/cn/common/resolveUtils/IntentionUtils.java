@@ -4,9 +4,11 @@ import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.BotConfig;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
+import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.ReturnedMessages;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.WorksPojo;
 import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import ai.qiwu.com.cn.service.handleService.WatchService;
+import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,7 +19,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
- * 手表推荐返回数据
+ * 手表推荐已做部分
  * @author hjd
  */
 @Slf4j
@@ -25,216 +27,33 @@ import java.util.concurrent.TimeUnit;
 public class IntentionUtils {
     @Autowired
     RedisTemplate redisTemplate;
-
     /**
      * 手表推荐之推荐
      * @return
      */
     public static String recommenda(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取渠道ID
+        String channelId = intent.getChannelId();
         //请求推荐作品接口，返回所有作品
-        Map map = TypeRecommendation.getWorks();
-        //查询数据库中渠道id相同的
-        List<Watch> watches = TypeRecommendation.channelJudgment(intent, watchService);
-        //获取交集
-        DataResponse dataResponse = ExtractUtils.intersectionWorks(watches, map);
-
-
-        //获取返回信息
-        String text = "";
-        List<String> titleList = new ArrayList<>();
-        String titleText = "";
-
-        //创建一个集合用于存储排序后的游戏名和编号
-        HashMap<String, String> game = new HashMap<>();
-        //创建以个map集合用于存储免费游戏名和编号
-        HashMap<String, String> freeGameNumber = new HashMap<>();
-        //创建以个map集合用于存储收费游戏名和编号
-        HashMap<String, String> paidGameNumber = new HashMap<>();
-        //创建一个map集合用于免费游戏
-        HashMap<String, Double> gameFree = new HashMap<>();
-        //创建以个map集合用于收费游戏
-        HashMap<String, Double> gameCharges = new HashMap<>();
-        //获取works
-        List<WorksPojo> works = dataResponse.getWorks();
-
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //将map封装成作品对象
+        DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         //判断是否有作品
-        if (works.size() <= 0) {
-            String recommendText = "暂无作品！";
-            String recommendName = "暂无作品！";
+        if(dataResponse.getWorks().size()<=0){
+            String recommendText = "暂无作品";
+            String recommendName = "暂无作品";
+            //将结果信息封装后返回
             return TypeRecommendation.packageResult(recommendName, recommendText);
+        }else{
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate, dataResponse.getWorks());
+            //将作品按照分数排序，且免费收费作品交替出现，返回信息
+            ReturnedMessages returnedMessages = WorkExtractionUtils.fractionalCharge(dataResponse);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "为您推荐以上作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
         }
-
-        //清空上一轮推荐的作品缓存
-        while (redisTemplate.opsForList().size("worksList")>0){
-            redisTemplate.opsForList().leftPop("worksList");
-        }
-        //将作品信息添加到缓存
-        redisTemplate.opsForList().rightPushAll("worksList",works);
-        //设置过期时间
-        redisTemplate.expire("worksList",3, TimeUnit.MINUTES);
-
-        for (WorksPojo work : works) {
-            //获取是否收费信息
-            List<String> synopsis = work.getLabels();
-            for (String s : synopsis) {
-                if (s.equals("New") || s.equals("免费")) {
-                    //获取游戏名
-                    String gameName = work.getName();
-                    //获取游戏分数
-                    Double fraction = work.getScore();
-                    //获取游戏编号
-                    String botAccount = work.getBotAccount();
-                    //存入免费游戏编号集合
-                    freeGameNumber.put(gameName, botAccount);
-                    //存入免费游戏集合
-                    gameFree.put(gameName, fraction);
-                } else if (s.equals("VIP") || s.equals("付费")) {
-                    //获取游戏名
-                    String gameName = work.getName();
-                    //获取游戏分数
-                    Double fraction = work.getScore();
-                    //获取游戏编号
-                    String botAccount = work.getBotAccount();
-                    //存入收费游戏编号集合
-                    paidGameNumber.put(gameName, botAccount);
-                    //存入收费游戏集合
-                    gameCharges.put(gameName, fraction);
-                }
-            }
-
-        }
-
-        //对免费游戏集合按分数进行降序排序
-        List<Map.Entry<String, Double>> list = new ArrayList<Map.Entry<String, Double>>(gameFree.entrySet());
-        Collections.sort(list, new Comparator<Map.Entry<String, Double>>() {
-            @Override
-            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-                return o2.getValue().compareTo(o1.getValue());
-            }
-        });
-
-        //对收费游戏集合按分数进行降序排序
-        List<Map.Entry<String, Double>> list2 = new ArrayList<Map.Entry<String, Double>>(gameCharges.entrySet());
-        Collections.sort(list2, new Comparator<Map.Entry<String, Double>>() {
-            @Override
-            public int compare(Map.Entry<String, Double> o1, Map.Entry<String, Double> o2) {
-                return o2.getValue().compareTo(o1.getValue());
-            }
-        });
-        log.warn("list:{}", list);
-
-        //判断集合长度
-        if (list.size() > list2.size()) {
-            for (int i = 0; i < list.size(); i++) {
-
-                //判断是否最后
-                if (i == list.size() - 1) {
-                    //获取免费游戏名
-                    String freeName = list.get(i).getKey();
-                    //获取免费游戏名编号
-                    String number = freeGameNumber.get(freeName);
-                    text += number + "+" + freeName;
-
-                    titleList.add(freeName);
-
-                    if (titleList.size() >= 3) {
-                        for (int j = 0; j < 3; j++) {
-
-                            if (j == 2) {
-                                titleText += "《" + titleList.get(j) + "》，";
-                            }else {
-                                titleText += "《" + titleList.get(j) + "》、";
-                            }
-                        }
-                    } else {
-                        for (int y = 0; y < titleList.size(); y++) {
-                            if (y == titleList.size() - 1) {
-                                titleText += "《" + titleList.get(y) + "》，";
-                            }else {
-                                titleText += "《" + titleList.get(y) + "》、";
-                            }
-                        }
-                    }
-                    game.put(freeName, number);
-                    String recommendText = "☛推荐" + text + "☚";
-                    String recommendName = "为您推荐以上作品：" + titleText + "你可以说：打开" + titleList.get(0);
-                    return TypeRecommendation.packageResult(recommendName, recommendText);
-                }
-
-                //获取免费游戏名
-                String freeName = list.get(i).getKey();
-                //获取免费游戏名编号
-                String number = freeGameNumber.get(freeName);
-                text += number + "+" + freeName + ",";
-                titleList.add(freeName);
-                game.put(freeName, number);
-                if (list2.size() > i) {
-                    //获取收费游戏名
-                    String freeGameName2 = list2.get(i).getKey();
-                    //获取收费游戏名编号
-                    String number2 = paidGameNumber.get(freeGameName2);
-                    text += number2 + "+" + freeGameName2 + ",";
-                    titleList.add(freeGameName2);
-                    game.put(freeGameName2, number2);
-                }
-            }
-        } else {
-            for (int i = 0; i < list2.size(); i++) {
-
-
-                if (list.size() >= i) {
-                    //获取免费游戏名
-                    String freeName = list.get(i).getKey();
-                    //获取免费游戏名编号
-                    String number = freeGameNumber.get(freeName);
-                    text += number + "+" + freeName + ",";
-                    titleList.add(freeName);
-                    game.put(freeName, number);
-                }
-                if (i == list2.size() - 1) {
-                    //获取收费游戏名
-                    String freeGameName2 = list.get(i).getKey();
-                    //获取收费游戏名编号
-                    String number2 = paidGameNumber.get(freeGameName2);
-                    text += number2 + "+" + freeGameName2;
-
-                    titleList.add(freeGameName2);
-
-                    if (titleList.size() >= 3) {
-                        for (int j = 0; j < 3; j++) {
-
-                            if (j == 2) {
-                                titleText += "《" + titleList.get(j) + "》，";
-                            }else {
-                                titleText += "《" + titleList.get(j) + "》、";
-                            }
-                        }
-                    } else {
-                        for (int y = 0; y < titleList.size(); y++) {
-                            if (y == titleList.size() - 1) {
-                                titleText += "《" + titleList.get(y) + "》，";
-                            }else {
-                                titleText += "《" + titleList.get(y) + "》、";
-                            }
-                        }
-                    }
-                    game.put(freeGameName2, number2);
-                    String recommendText = "☛推荐" + text + "☚";
-                    String recommendName = "为您推荐以上作品：" + titleText + "你可以说：打开" + titleList.get(0);
-                    return TypeRecommendation.packageResult(recommendName, recommendText);
-                }
-                //获取收费游戏名
-                String freeGameName2 = list2.get(i).getKey();
-                //获取收费游戏名编号
-                String number2 = paidGameNumber.get(freeGameName2);
-                text += number2 + "+" + freeGameName2 + ",";
-
-                titleList.add(freeGameName2);
-                game.put(freeGameName2, number2);
-            }
-        }
-
-        return null;
     }
 
 
