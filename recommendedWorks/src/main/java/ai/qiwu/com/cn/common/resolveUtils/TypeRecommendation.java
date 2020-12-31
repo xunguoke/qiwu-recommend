@@ -65,7 +65,7 @@ private WatchService watchService;
             //将请求信息封装在对象中
             IntentionRequest intentionRequest=new IntentionRequest();
             intentionRequest.setWorks(works);
-                intentionRequest.setIntention(intention);
+            intentionRequest.setIntention(intention);
             intentionRequest.setChatKey(chatKey);
             intentionRequest.setChannelId(channelId);
             intentionRequest.setUid(uid);

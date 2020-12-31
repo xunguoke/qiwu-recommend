@@ -456,7 +456,7 @@ public class WorkExtractionUtils {
                     }
                 }
                 //封装对象后返回
-                messages.setWorksList(listWorks);
+                messages.setWorksList(text);
                 messages.setWorkInformation(titleText);
                 messages.setWorksName(titleList);
                 return messages;

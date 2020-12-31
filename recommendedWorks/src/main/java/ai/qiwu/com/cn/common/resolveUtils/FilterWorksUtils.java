@@ -8,6 +8,7 @@ import ai.qiwu.com.cn.pojo.connectorPojo.WorkInformation;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 该类主要用于筛选作品，类型
@@ -16,16 +17,33 @@ import java.util.List;
 public class FilterWorksUtils {
     /**
      * 筛选不包含禁用标签且包含意图的作品
-     * @param dataResponse 封装的作品信息
+     * @param works 所有作品
      * @param semantics 用户意图
      * @param strings 禁用标签
      * @return
      */
-    public static DataResponse nonProhibitedWorks(DataResponse dataResponse, String semantics, List<String> strings) {
-        if(strings!=null&&strings.contains(semantics)){
-            return null;
+    public static List<WorksPojo> nonProhibitedWorks(List<WorksPojo> works, String semantics, List<String> strings) {
+        List<WorksPojo> worksPojos=new ArrayList<>();
+        if(strings==null){
+            for (WorksPojo work : works) {
+                List<String> labels = work.getLabels();
+                if(labels.contains(semantics)){
+                    worksPojos.add(work);
+                }
+            }
+            return worksPojos;
         }else {
-            return dataResponse;
+            if(strings.contains(semantics)){
+                return null;
+            }else{
+                for (WorksPojo work : works) {
+                    List<String> labels = work.getLabels();
+                    if(labels.contains(semantics)){
+                        worksPojos.add(work);
+                    }
+                }
+                return worksPojos;
+            }
         }
     }
 
@@ -108,21 +126,44 @@ public class FilterWorksUtils {
      * @return
      */
     public static String designatedWorks(DataResponse dataResponse, String semantics, List<String> strings) {
+
         String type="";
         for (WorksPojo work : dataResponse.getWorks()) {
-            if (work.getName().equals(semantics)){
+            if (work.getName().equals(semantics)) {
                 List<String> labels = work.getLabels();
-                labels.retainAll(strings);
-                type+=work.getName()+"的作品类型是：";
-                for (int i = 0; i < labels.size(); i++) {
-                    if (!labels.get(i).equals("VIP")&&!labels.get(i).equals("New")){
-                        if (i==labels.size()-1){
-                            type+=labels.get(i);
+                if (labels == null) {
+                    return null;
+                } else {
+                    if(strings==null){
+                        type += work.getName() + "的作品类型是：";
+                        for (int i = 0; i < labels.size(); i++) {
+                            if (i == labels.size() - 1) {
+                                if (!labels.get(i).equals("VIP") && !labels.get(i).equals("New")) {
+                                    type += labels.get(i);
+                                }
+                            } else {
+                                if (!labels.get(i).equals("VIP") && !labels.get(i).equals("New")) {
+                                    type += labels.get(i) + "、";
+                                }
+                            }
                         }
-                        type+=labels.get(i)+"、";
+                        return type;
+                    }else {
+                        labels.retainAll(strings);
+                        type += work.getName() + "的作品类型是：";
+                        for (int i = 0; i < labels.size(); i++) {
+                            if (i == labels.size() - 1) {
+                                if (!labels.get(i).equals("VIP") && !labels.get(i).equals("New")) {
+                                    type += labels.get(i);
+                                }
+                            }
+                            if (!labels.get(i).equals("VIP") && !labels.get(i).equals("New")) {
+                                type += labels.get(i) + "、";
+                            }
+                        }
+                        return type;
                     }
                 }
-                return type;
             }
         }
         return null;
@@ -185,12 +226,15 @@ public class FilterWorksUtils {
                 labels.add(multipleLabel);
             }
         }
-        HashSet hashSet = new HashSet(labels);
-        labels.clear();
-        labels.addAll(hashSet);
-        labels.removeAll(jy);
-        labels.removeAll(strings);
-        return labels;
+        List<String> label = labels.stream().distinct().collect(Collectors.toList());
+        label.removeAll(jy);
+        if(strings==null){
+            return label;
+        }else{
+            List<String> stringList=new ArrayList<>(strings);
+            label.removeAll(stringList);
+            return label;
+        }
     }
 
     /**

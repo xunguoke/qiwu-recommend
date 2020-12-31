@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.ModelMap;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -72,14 +73,12 @@ public class IntentionUtils {
         //从接口中获取禁用标签
         List<String> strings = TypeRecommendation.disableLabel(channelId);
         //筛选不含有禁用标签的作品
-        DataResponse dataResponses = FilterWorksUtils.nonProhibitedWorks(dataResponse, semantics, strings);
-        //获取筛选后的最终作品
-        List<WorksPojo> worksPoJos = dataResponses.getWorks();
-        if (worksPoJos.size()>0){
+        List<WorksPojo> worksPojos = FilterWorksUtils.nonProhibitedWorks(dataResponse.getWorks(), semantics, strings);
+        if (worksPojos!=null){
             //将作品存到缓存中去
-            CacheUtils.cacheSave(redisTemplate, worksPoJos);
+            CacheUtils.cacheSave(redisTemplate, worksPojos);
             //将作品按照分数排序,返回信息
-            ReturnedMessages returnedMessages = WorkExtractionUtils.scoreSort(dataResponses.getWorks());
+            ReturnedMessages returnedMessages = WorkExtractionUtils.scoreSort(worksPojos);
             String work = returnedMessages.getWorkInformation();
             String workInformation = "为您推荐以上作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
             //封装返回结果信息
@@ -509,7 +508,6 @@ public class IntentionUtils {
         }else{
             //将作品按照作者的作品数量排序,返回信息
             ReturnedMessages returnedMessages = WorkExtractionUtils.numberOfAuthorSWorks(typeList);
-
             String workInformation = returnedMessages.getWorkInformation();
             //封装返回结果信息
             return ResultUtils.packageResult(workInformation, returnedMessages.getWorksList());

@@ -50,7 +50,6 @@ public class GetWorksUtils {
         String responseJson = null;
         try (ResponseBody body = response.body()){
             responseJson = body.string();
-            log.info("推荐作品接口返回数据,{}", responseJson);
         } catch (IOException e) {
             e.printStackTrace();
         }
