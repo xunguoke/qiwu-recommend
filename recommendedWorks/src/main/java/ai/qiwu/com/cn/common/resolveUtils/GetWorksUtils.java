@@ -53,7 +53,6 @@ public class GetWorksUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         //将String数据转换成map
         map = gson.fromJson(responseJson, map.getClass());
         return map;

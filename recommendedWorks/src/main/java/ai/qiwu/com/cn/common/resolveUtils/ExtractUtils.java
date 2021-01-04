@@ -443,7 +443,7 @@ public class ExtractUtils {
     /**
      * 筛选不包含渠道禁用标签的作品
      * @param works 所有作品
-     * @param strings 禁用标签
+     * @param strings1 禁用标签
      * @return
      */
     public static List<WorksPojo> filterDisabled(List<WorksPojo> works, List<String> strings1) {
@@ -715,7 +715,7 @@ public class ExtractUtils {
     /**
      * 用户多个意图，结合渠道警用标签筛选
      * @param works
-     * @param strings
+     * @param strings1
      * @param semantics
      * @return
      */
@@ -753,7 +753,7 @@ public class ExtractUtils {
     /**
      * 筛选不包含渠道禁用标签的作品且满足所有意图的作品
      * @param works
-     * @param strings
+     * @param strings1
      * @param semantics
      * @return
      */
@@ -874,23 +874,7 @@ public class ExtractUtils {
     }
 
 
-    /**
-     * 返回指定作品
-     * @param works
-     * @param semantics
-     * @return
-     */
-    public static WorksPojo designatedWorks(List<WorksPojo> works, String semantics) {
-        //循环所有作品
-        for (WorksPojo work : works) {
-            //判断作品名是否相同
-            if (work.getName().equals(semantics)){
-                //返回指定作品
-                return work;
-            }
-        }
-        return null;
-    }
+
 
     /**
      * 判断作品免费还是付费

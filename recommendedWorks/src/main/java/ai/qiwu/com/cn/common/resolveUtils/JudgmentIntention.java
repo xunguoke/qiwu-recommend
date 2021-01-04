@@ -88,6 +88,8 @@ public class JudgmentIntention {
             return IntentionTool.authorSLatestWorks(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之某类型时间段最新作品推荐")){
             return IntentionTool.typeLatest(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之查询已购买的作品")){
+            return IntentionTool.purchasedWorks(intent, watchService,redisTemplate);
         }else{
             log.warn("没有查询到合适的意图");
             return null;

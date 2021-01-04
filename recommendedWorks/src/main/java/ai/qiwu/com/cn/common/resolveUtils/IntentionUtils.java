@@ -71,7 +71,7 @@ public class IntentionUtils {
         //获取语义
         String semantics = intent.getWorks();
         //从接口中获取禁用标签
-        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选不含有禁用标签的作品
         List<WorksPojo> worksPojos = FilterWorksUtils.nonProhibitedWorks(dataResponse.getWorks(), semantics, strings);
         if (worksPojos!=null){
@@ -133,7 +133,7 @@ public class IntentionUtils {
         //获取语义
         String semantics = intent.getWorks();
         //从接口中获取禁用标签
-        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选与意图作品标签相同的作品
         TemporaryWorks temporaryWorks = FilterWorksUtils.scoreLabel(dataResponse, semantics, strings);
         if(temporaryWorks.getWorkInformations().size()>0){
@@ -197,7 +197,7 @@ public class IntentionUtils {
         //将map封装成作品对象
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         //从接口中获取禁用标签
-        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选指定作品的类型
         String type = FilterWorksUtils.designatedWorks(dataResponse, semantics, strings);
         if (type == "" || type == null) {
@@ -428,7 +428,7 @@ public class IntentionUtils {
         //获取用户id
         String uid = intent.getUid();
         //从接口中获取禁用标签
-        List<String> strings = TypeRecommendation.disableLabel(channelId);
+        List<String> strings = GetWorksUtils.disableLabel(channelId);
         //请求推荐作品接口，返回所有作品
         Map map = GetWorksUtils.getInterfaceWorks(channelId);
         //将map封装成作品对象
