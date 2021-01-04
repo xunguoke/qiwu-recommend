@@ -1,39 +1,27 @@
 package ai.qiwu.com.cn.pojo;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.Date;
 
 /**
- * 用户已玩作品
+ * 系列作品表
  * @author hjd
  */
-@Getter
-@Setter
-public class UserHistory {
-    private Integer id;
-    private String type;
+public class SeriesPay {
+    private String seriesname;
     private String workname;
-    private String userid;
     private String channelid;
+    private String uid;
+    private String price;
+    private Integer duration;
     private Date gmtcreate;
     private Date gmtmodified;
 
-    public Integer getId() {
-        return id;
+    public String getSeriesname() {
+        return seriesname;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
+    public void setSeriesname(String seriesname) {
+        this.seriesname = seriesname;
     }
 
     public String getWorkname() {
@@ -44,20 +32,36 @@ public class UserHistory {
         this.workname = workname;
     }
 
-    public String getUserid() {
-        return userid;
-    }
-
-    public void setUserid(String userid) {
-        this.userid = userid;
-    }
-
     public String getChannelid() {
         return channelid;
     }
 
     public void setChannelid(String channelid) {
         this.channelid = channelid;
+    }
+
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public String getPrice() {
+        return price;
+    }
+
+    public void setPrice(String price) {
+        this.price = price;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
     }
 
     public Date getGmtcreate() {

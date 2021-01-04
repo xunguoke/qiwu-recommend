@@ -38,4 +38,59 @@ public class UserRequest {
      */
     private String channelId;
 
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    public List<String> getGroupVars() {
+        return groupVars;
+    }
+
+    public void setGroupVars(List<String> groupVars) {
+        this.groupVars = groupVars;
+    }
+
+    public String getQueryText() {
+        return queryText;
+    }
+
+    public void setQueryText(String queryText) {
+        this.queryText = queryText;
+    }
+
+    public String getChatKey() {
+        return chatKey;
+    }
+
+    public void setChatKey(String chatKey) {
+        this.chatKey = chatKey;
+    }
+
+    public String getBotAccount() {
+        return botAccount;
+    }
+
+    public void setBotAccount(String botAccount) {
+        this.botAccount = botAccount;
+    }
+
+    public List<Recommend> getVars() {
+        return vars;
+    }
+
+    public void setVars(List<Recommend> vars) {
+        this.vars = vars;
+    }
+
+    public String getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(String channelId) {
+        this.channelId = channelId;
+    }
 }

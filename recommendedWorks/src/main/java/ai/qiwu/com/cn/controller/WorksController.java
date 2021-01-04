@@ -38,11 +38,9 @@ public class WorksController {
      */
     @PostMapping("/watch")
     public String works(){
-        //log.warn("请求:{}",request);
         long startTime=System.currentTimeMillis();
         String recommendations = recommendaService.getRecommendations(request, watchService, redisTemplate);
         long endTime=System.currentTimeMillis();
-        log.warn("时间:{}",(endTime-startTime));
         return recommendations;
     }
 }

@@ -99,7 +99,6 @@ public class ExtractUtils {
         for (Watch watch : watches) {
             channels.add(watch.getWorkname());
         }
-        log.warn("channels:{}",channels);
         //获取接口中所有作品
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         List<WorksPojo> works = dataResponse.getWorks();
@@ -155,8 +154,6 @@ public class ExtractUtils {
         for (WorksPojo work : works) {
             interfaceWorks.add(work.getName());
         }
-        log.warn("interfaceWorks:{}",interfaceWorks);
-        log.warn("channels:{}",channels);
         //获取交集获取作品名
         channels.retainAll(interfaceWorks);
 
@@ -208,11 +205,9 @@ public class ExtractUtils {
         for (int i = 0; i < workTime.size(); i++) {
             historicalWorks.add(workTime.get(i).getKey());
         }
-        log.warn("historicalWorks:{}",historicalWorks);
         //todo 4.取交集
         channels.retainAll(interfaceWorks);
         historicalWorks.retainAll(channels);
-        log.warn("historicalWorks:{}",historicalWorks);
         //todo 5.封装作品
         //循环遍历接口中的所有作品
         for (int j = 0; j < historicalWorks.size(); j++) {
@@ -364,13 +359,10 @@ public class ExtractUtils {
         for (WorksPojo work : works) {
             //获取作品名
             String gameName = work.getName();
-            log.warn("gameName:{}", gameName);
             //获取作品分数
             Double fraction = work.getScore();
-            log.warn("fraction:{}", fraction);
             //获取作品编号
             String botAccount = work.getBotAccount();
-            log.warn("botAccount:{}", botAccount);
             //存入游戏编号集合
             gameNumber.put(gameName, botAccount);
             //存入游戏评分集合
@@ -470,7 +462,7 @@ public class ExtractUtils {
     }
 
     /**
-     * 根据历史玩过的时间排序获取作品列表以及返回信息
+     * 根据历史玩过获取作品列表以及返回信息
      * @param works
      * @return
      */
@@ -485,8 +477,6 @@ public class ExtractUtils {
         String listOfWorks = "";
         List<String> titleList = new ArrayList<>();
         String workInformation = "";
-
-
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < works.size(); i++) {
             //获取作品名
@@ -567,13 +557,10 @@ public class ExtractUtils {
         for (WorksPojo work : works) {
             //获取作品名
             String gameName = work.getName();
-            log.warn("gameName:{}", gameName);
             //获取作品上线时间
             String fraction = work.getGmtApply();
-            log.warn("fraction:{}", fraction);
             //获取作品编号
             String botAccount = work.getBotAccount();
-            log.warn("botAccount:{}", botAccount);
             //存入游戏编号集合
             gameNumber.put(gameName, botAccount);
             //存入游戏时间集合
@@ -663,17 +650,13 @@ public class ExtractUtils {
         if(date.size()>1){
             //获取开始时间
             startingTime = date.get(0);
-            log.warn("startingTime:{}",startingTime);
             //获取结束时间
             endTime = date.get(1);
-            log.warn("endTime:{}",endTime);
         }else{
             //获取开始时间
             startingTime = date.get(0);
-            log.warn("startingTime:{}",startingTime);
             //获取当前时间
             endTime = DateUtil.currentTimes();
-            log.warn("endTime:{}",endTime);
         }
         //获取所有作品
         List<WorksPojo> works = dataResponses.getWorks();
@@ -694,7 +677,6 @@ public class ExtractUtils {
                     interfaceWorks.add(work.getName());
                 }
             } catch (ParseException e) {
-                log.warn("时间转换失败");
                 e.printStackTrace();
             }
         }

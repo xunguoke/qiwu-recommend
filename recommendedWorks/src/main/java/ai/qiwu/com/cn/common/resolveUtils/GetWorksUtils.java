@@ -43,7 +43,6 @@ public class GetWorksUtils {
         try {
             response = client.newCall(request).execute();
         } catch (IOException e) {
-            log.warn("推荐作品接口返回数据有误:",e.toString());
             e.printStackTrace();
         }
 
@@ -84,7 +83,6 @@ public class GetWorksUtils {
         try {
             response = client.newCall(request).execute();
         } catch (IOException e) {
-            log.warn("推荐作品接口返回数据有误:",e.toString());
             e.printStackTrace();
         }
 

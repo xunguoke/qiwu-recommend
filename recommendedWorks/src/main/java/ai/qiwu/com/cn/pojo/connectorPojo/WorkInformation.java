@@ -31,6 +31,37 @@ public class WorkInformation {
      */
     private Integer size;
 
+    public String getGameName() {
+        return gameName;
+    }
+
+    public void setGameName(String gameName) {
+        this.gameName = gameName;
+    }
+
+    public String getBotAccount() {
+        return botAccount;
+    }
+
+    public void setBotAccount(String botAccount) {
+        this.botAccount = botAccount;
+    }
+
+    public Double getFraction() {
+        return fraction;
+    }
+
+    public void setFraction(Double fraction) {
+        this.fraction = fraction;
+    }
+
+    public Integer getSize() {
+        return size;
+    }
+
+    public void setSize(Integer size) {
+        this.size = size;
+    }
 
     public WorkInformation(String gameName, String botAccount, Double fraction, Integer size) {
         this.gameName = gameName;

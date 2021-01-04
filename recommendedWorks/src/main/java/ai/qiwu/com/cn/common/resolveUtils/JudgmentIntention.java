@@ -28,7 +28,6 @@ public class JudgmentIntention {
         if(intention.equals("手表推荐之推荐")){
             return IntentionUtils.recommenda(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之类型推荐")){
-            log.warn("到这里");
             return IntentionUtils.typeRecommendation(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之最新推荐")){
             return IntentionUtils.latestCreation(intent, watchService,redisTemplate);
@@ -90,8 +89,11 @@ public class JudgmentIntention {
             return IntentionTool.typeLatest(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之查询已购买的作品")){
             return IntentionTool.purchasedWorks(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之查询已购买某类型作品")){
+            return IntentionTool.purchaseType(intent, watchService,redisTemplate);
+        }else if(intention.equals("手表推荐之查询时间段已购买作品")){
+            return IntentionTool.purchasedTimePeriod(intent, watchService,redisTemplate);
         }else{
-            log.warn("没有查询到合适的意图");
             return null;
         }
     }
@@ -103,11 +105,9 @@ public class JudgmentIntention {
      * @return
      */
     public static List<String> getDate(String semantics) {
-        log.warn("时间");
         //判断字符串式否是数字
         boolean b = StringUtils.HasDigit(semantics);
         if(b==true){
-            log.warn("包含数字");
             //如果包含数字,判断是否包含指定的关键字
             if(semantics.contains("最近")&&semantics.contains("天")){
                 //获取数字
@@ -142,7 +142,6 @@ public class JudgmentIntention {
         }else if(semantics.equals("这周")){
             return DateUtil.getCurrentWeek();
         }else if(semantics.equals("上周")){
-            log.warn("上周:{}");
             return DateUtil.getLastWeek();
         }else if(semantics.equals("这个月")){
             return DateUtil.getCurrentMonth();

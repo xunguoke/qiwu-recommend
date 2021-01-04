@@ -24,4 +24,28 @@ public class ReturnedMessages {
      * 作品名集合
      */
     private List<String> worksName;
+
+    public String getWorksList() {
+        return worksList;
+    }
+
+    public void setWorksList(String worksList) {
+        this.worksList = worksList;
+    }
+
+    public String getWorkInformation() {
+        return workInformation;
+    }
+
+    public void setWorkInformation(String workInformation) {
+        this.workInformation = workInformation;
+    }
+
+    public List<String> getWorksName() {
+        return worksName;
+    }
+
+    public void setWorksName(List<String> worksName) {
+        this.worksName = worksName;
+    }
 }

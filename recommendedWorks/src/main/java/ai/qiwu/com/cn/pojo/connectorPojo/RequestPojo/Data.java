@@ -7,8 +7,6 @@ import java.util.List;
 /**
  * @author hjd
  */
-@Setter
-@Getter
 public class Data {
     /**
      * 变量
@@ -19,4 +17,19 @@ public class Data {
      */
     private List<Object> groupVars;
 
+    public Object getVars() {
+        return vars;
+    }
+
+    public void setVars(Object vars) {
+        this.vars = vars;
+    }
+
+    public List<Object> getGroupVars() {
+        return groupVars;
+    }
+
+    public void setGroupVars(List<Object> groupVars) {
+        this.groupVars = groupVars;
+    }
 }

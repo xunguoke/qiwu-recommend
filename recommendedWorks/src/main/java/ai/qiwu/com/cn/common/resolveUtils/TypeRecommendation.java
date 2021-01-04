@@ -41,16 +41,12 @@ private WatchService watchService;
     public static IntentionRequest getIntent(HttpServletRequest request) {
         //解析请求
         Map map = CommonlyUtils.parsingRequest(request);
-        log.warn("map:{}",map);
         //获取指定件所对应的值
         String channelId = (String) map.get("channelId");
-        log.warn("渠道ID:{}",channelId);
         String uid = (String) map.get("uid");
-        log.warn("用户ID:{}",uid);
         String chatKey = (String) map.get("chatKey");
         Map vars = (Map) map.get("vars");
         String intention = (String) vars.get("手表推荐之推荐意图");
-        log.warn("手表推荐之推荐意图:{}",intention);
         //判断用户语句中是否有加号
         if(intention.contains("+")){
             //截取+号之前的数据
@@ -58,9 +54,6 @@ private WatchService watchService;
             String works = (String) vars.get(intentions);
             String historyTypeOne = (String) vars.get(intentions + "1");
             String historyTypeTwo = (String) vars.get(intentions + "2");
-            log.warn("手表推荐:{}",works);
-            log.warn("手表推荐1:{}",historyTypeOne);
-            log.warn("手表推荐2:{}",historyTypeTwo);
 
             //将请求信息封装在对象中
             IntentionRequest intentionRequest=new IntentionRequest();
@@ -77,10 +70,6 @@ private WatchService watchService;
         String works = (String) vars.get(intention);
         String historyTypeOne = (String) vars.get(intention + "1");
         String historyTypeTwo = (String) vars.get(intention + "2");
-        log.warn("手表推荐:{}",works);
-        log.warn("手表推荐1:{}",historyTypeOne);
-        log.warn("手表推荐2:{}",historyTypeTwo);
-
         //将请求信息封装在对象中
         IntentionRequest intentionRequest=new IntentionRequest();
         intentionRequest.setWorks(works);
@@ -124,7 +113,6 @@ private WatchService watchService;
         try {
             response = client.newCall(request).execute();
         } catch (IOException e) {
-            log.warn("推荐作品接口返回数据有误:",e.toString());
             e.printStackTrace();
         }
 
@@ -166,7 +154,6 @@ private WatchService watchService;
 
         //将对象转换成json
         String s = JSON.toJSONString(radical);
-        log.warn("返回信息:{}",s);
         return s;
     }
 
@@ -191,7 +178,6 @@ private WatchService watchService;
 
         //将对象转换成json
         String s = JSON.toJSONString(radical);
-        log.warn("返回信息:{}",s);
         return s;
     }
 
@@ -207,7 +193,6 @@ private WatchService watchService;
         Integer online=1;
         //数据库中查询渠道ID
         List<Watch> channelIds = watchService.findByChannelId(channelId,online);
-        log.warn("channelIds:{}",channelIds);
         return channelIds;
     }
 
@@ -244,7 +229,6 @@ private WatchService watchService;
         try {
             response = client.newCall(request).execute();
         } catch (IOException e) {
-            log.warn("推荐作品接口返回数据有误:",e.toString());
             e.printStackTrace();
         }
 
@@ -289,7 +273,6 @@ private WatchService watchService;
         try {
             response = client.newCall(request).execute();
         } catch (IOException e) {
-            log.warn("推荐作品接口返回数据有误:",e.toString());
             e.printStackTrace();
         }
 
@@ -335,7 +318,6 @@ private WatchService watchService;
     public static List<UserHistory> findByUid(String uid, WatchService watchService) {
         //数据库中查询
         List<UserHistory> userHistory = watchService.findByUid(uid);
-        log.warn("userHistory:{}",userHistory);
         return userHistory;
     }
 
@@ -352,21 +334,16 @@ private WatchService watchService;
         if(date.size()>1){
             //获取开始时间
             startingTime = date.get(0);
-            log.warn("startingTime:{}",startingTime);
             //获取结束时间
             endTime = date.get(1);
-            log.warn("endTime:{}",endTime);
         }else{
             //获取开始时间
             startingTime = date.get(0);
-            log.warn("startingTime:{}",startingTime);
             //获取当前时间
             endTime = DateUtil.currentTimes();
-            log.warn("endTime:{}",endTime);
         }
         //数据库中查询
         List<UserHistory> userHistory = watchService.findByUidOfDate(uid,startingTime,endTime);
-        log.warn("userHistory:{}",userHistory);
         return userHistory;
 
     }

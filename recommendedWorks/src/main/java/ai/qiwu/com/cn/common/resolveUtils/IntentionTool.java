@@ -1,5 +1,7 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
+import ai.qiwu.com.cn.pojo.PayControl;
+import ai.qiwu.com.cn.pojo.SeriesPay;
 import ai.qiwu.com.cn.pojo.UserHistory;
 import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
@@ -51,7 +53,6 @@ public class IntentionTool {
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //获取所有作品
         List<WorksPojo> works = dataResponses.getWorks();
-        log.warn("works:{}", works);
         //获取语义
         String semantics = intent.getWorks();
         //判断禁用标签列表是否为空
@@ -97,7 +98,6 @@ public class IntentionTool {
 
     /**
      * 收表推荐之历史记录时间段查询
-     *
      * @param intent        用户请求信息
      * @param watchService  数据库类对象
      * @param redisTemplate
@@ -118,8 +118,6 @@ public class IntentionTool {
         List<Map.Entry<String, Date>> workTime = FilterWorksUtils.workTime(byUidOfDate);
         //获取接口作品和数据库历史表中作品交集(此时已经按照时间降序排序)
         DataResponse dataResponses = FilterWorksUtils.workResult(maps, workTime);
-        //获取禁用标签
-        List<String> strings = GetWorksUtils.disableLabel(channelId);
         //获取所有作品
         List<WorksPojo> works = dataResponses.getWorks();
         if (works.size() > 0) {
@@ -217,7 +215,6 @@ public class IntentionTool {
         String channelId = intent.getChannelId();
         //获取语义
         String semantics = intent.getWorks();
-        log.warn("到达这里");
         //获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选不包含渠道禁用标签的作品
@@ -411,7 +408,6 @@ public class IntentionTool {
         String semantics = intent.getWorks();
         //获取用户id
         String uid = intent.getUid();
-        log.warn("到达这里");
         //获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //获取所有满足意图的作品
@@ -826,7 +822,7 @@ public class IntentionTool {
             //获取指定作者的作品
             List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponses, semantics2);
             //判断作品列表是否为空
-            if (worksPoJos == null) {
+            if (worksPoJos == null||worksPoJos.size()<=0) {
                 String recommendText = semantics2 + semantics1 + "没有上线新的作品";
                 String recommendName = semantics2 + semantics1 + "没有上线新的作品";
                 return TypeRecommendation.packageResult(recommendName, recommendText);
@@ -929,13 +925,128 @@ public class IntentionTool {
 
     /**
      * 手表推荐之查询已购买的作品
-      * @param intent
+     * @param intent
      * @param watchService
      * @param redisTemplate
      * @return
      */
     public static String purchasedWorks(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
-        return null;
+        //获取渠道ID
+        String channelId = intent.getChannelId();
+        //获取用户id
+        String uid = intent.getUid();
+        //请求数据库获取已购买作品表数据
+        List<PayControl> payControls = DatabaseUtils.purchaseWorks(watchService, uid, channelId);
+        //查询数据库获取已购买系列作品表数据
+        List<SeriesPay> seriesPays = DatabaseUtils.purchasedSeries(watchService, uid, channelId);
+        //请求推荐作品接口，返回所有作品
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //获取已购买作品和已购买系列作品交集作品(返回并集(作品名，时间))从事已经按照时间排序
+        List<Map.Entry<String, Date>> workTime = FilterWorksUtils.purchasedIntersection(payControls, seriesPays);
+        //获取接口作品和已购作品交集(此时已经按照时间降序排序)
+        DataResponse dataResponses = FilterWorksUtils.workResult(map, workTime);
+        //获取所有作品
+        List<WorksPojo> works = dataResponses.getWorks();
+        if (works.size() > 0) {
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate, works);
+            //跟具作品时间进行排序返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.historicalTimeSequence(works);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "您已经购买了以上作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
+        } else {
+            String recommendText = "您还没有购买过作品";
+            String recommendName = "您还没有购买过作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }
+    }
+
+    /**
+     * 手表推荐之查询已购买某类型作品
+     * @param intent
+     * @param watchService
+     * @param redisTemplate
+     * @return
+     */
+    public static String purchaseType(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取渠道ID
+        String channelId = intent.getChannelId();
+        //获取语义
+        String semantics = intent.getWorks();
+        //获取用户id
+        String uid = intent.getUid();
+        //从接口中获取禁用标签
+        List<String> strings = GetWorksUtils.disableLabel(channelId);
+        //请求数据库获取已购买作品表数据
+        List<PayControl> payControls = DatabaseUtils.purchaseWorks(watchService, uid, channelId);
+        //查询数据库获取已购买系列作品表数据
+        List<SeriesPay> seriesPays = DatabaseUtils.purchasedSeries(watchService, uid, channelId);
+        //请求推荐作品接口，返回所有作品
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //获取已购买作品和已购买系列作品交集作品(返回并集(作品名，时间))从事已经按照时间排序
+        List<Map.Entry<String, Date>> workTime = FilterWorksUtils.purchasedIntersection(payControls, seriesPays);
+        //获取接口作品和已购作品交集(此时已经按照时间降序排序)
+        DataResponse dataResponses = FilterWorksUtils.workResult(map, workTime);
+        //筛选不含有禁用标签的作品
+        List<WorksPojo> worksPojos = FilterWorksUtils.nonProhibitedWorks(dataResponses.getWorks(), semantics, strings);
+        if (worksPojos!=null){
+            //将作品存到缓存中去
+            CacheUtils.cacheSave(redisTemplate, worksPojos);
+            //跟具作品时间进行排序返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.historicalTimeSequence(worksPojos);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "您已经购买了以上"+semantics+"类型的作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return ResultUtils.packageResult(workInformation, returnedMessages.getWorksList());
+        }else{
+            String workInformation = "您还没有购买过"+semantics+"类型的作品";
+            String listOfWorks = "您还没有购买过"+semantics+"类型的作品";
+            return ResultUtils.packageResult(workInformation, listOfWorks);
+        }
+    }
+
+    /**
+     * 手表推荐之查询时间段已购买作品
+     * @param intent
+     * @param watchService
+     * @param redisTemplate
+     * @return
+     */
+    public static String purchasedTimePeriod(IntentionRequest intent, WatchService watchService, RedisTemplate redisTemplate) {
+        //获取渠道ID
+        String channelId = intent.getChannelId();
+        //获取用户id
+        String uid = intent.getUid();
+        //获取语义
+        String semantics = intent.getWorks();
+        //请求数据库获取已购买作品表数据
+        List<PayControl> payControls = FilterWorksUtils.purchaseTime(watchService, uid, channelId,semantics);
+        //查询数据库获取已购买系列作品表数据
+        List<SeriesPay> seriesPays = FilterWorksUtils.purchaseSeriesTimePeriod(watchService, uid, channelId,semantics);
+        //请求推荐作品接口，返回所有作品
+        Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //获取已购买作品和已购买系列作品交集作品(返回并集(作品名，时间))从事已经按照时间排序
+        List<Map.Entry<String, Date>> workTime = FilterWorksUtils.purchasedIntersection(payControls, seriesPays);
+        //获取接口作品和已购作品交集(此时已经按照时间降序排序)
+        DataResponse dataResponses = FilterWorksUtils.workResult(map, workTime);
+        //获取所有作品
+        List<WorksPojo> works = dataResponses.getWorks();
+        if (works.size() > 0) {
+            //将作品存到缓存中去
+            ExtractUtils.cacheSave(redisTemplate, works);
+            //跟具作品时间进行排序返回作品列表和信息
+            ReturnedMessages returnedMessages = ExtractUtils.historicalTimeSequence(works);
+            String work = returnedMessages.getWorkInformation();
+            String workInformation = "您"+semantics+"购买了以上作品：" + work + "你可以说：打开" + returnedMessages.getWorksName().get(0);
+            //封装返回结果信息
+            return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
+        } else {
+            String recommendText = "您"+semantics+"没有购买过作品";
+            String recommendName = "您"+semantics+"没有购买过作品";
+            return TypeRecommendation.packageResult(recommendName, recommendText);
+        }
     }
 }
 

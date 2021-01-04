@@ -15,4 +15,20 @@ import java.util.List;
 public class TemporaryWorks {
     private List<WorkInformation> workInformations;
     private List<WorksPojo> worksPojos;
+
+    public List<WorkInformation> getWorkInformations() {
+        return workInformations;
+    }
+
+    public void setWorkInformations(List<WorkInformation> workInformations) {
+        this.workInformations = workInformations;
+    }
+
+    public List<WorksPojo> getWorksPojos() {
+        return worksPojos;
+    }
+
+    public void setWorksPojos(List<WorksPojo> worksPojos) {
+        this.worksPojos = worksPojos;
+    }
 }

@@ -14,4 +14,12 @@ public class RecommendResponse {
      * 推荐的作品
      */
     private String recommend;
+
+    public String getRecommend() {
+        return recommend;
+    }
+
+    public void setRecommend(String recommend) {
+        this.recommend = recommend;
+    }
 }

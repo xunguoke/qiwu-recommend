@@ -1,40 +1,18 @@
 package ai.qiwu.com.cn.pojo;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.util.Date;
 
 /**
- * 用户已玩作品
- * @author hjd
+ * 已购买作品表
  */
-@Getter
-@Setter
-public class UserHistory {
-    private Integer id;
-    private String type;
+public class PayControl {
     private String workname;
-    private String userid;
+    private String uid;
     private String channelid;
+    private String controlid;
+    private Integer status;
     private Date gmtcreate;
     private Date gmtmodified;
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public String getWorkname() {
         return workname;
@@ -44,12 +22,12 @@ public class UserHistory {
         this.workname = workname;
     }
 
-    public String getUserid() {
-        return userid;
+    public String getUid() {
+        return uid;
     }
 
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public String getChannelid() {
@@ -58,6 +36,22 @@ public class UserHistory {
 
     public void setChannelid(String channelid) {
         this.channelid = channelid;
+    }
+
+    public String getControlid() {
+        return controlid;
+    }
+
+    public void setControlid(String controlid) {
+        this.controlid = controlid;
+    }
+
+    public Integer getStatus() {
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 
     public Date getGmtcreate() {

@@ -38,9 +38,7 @@ public class CommonlyUtils {
         BufferedReader reader = null;
         try {
             reader = new BufferedReader(new InputStreamReader(request.getInputStream()));
-            log.warn("请求体:{}",reader);
         } catch (IOException e) {
-            log.error("获取请求体错误:{}",e.toString());
             e.printStackTrace();
         }
         //转换成String
@@ -51,12 +49,10 @@ public class CommonlyUtils {
                 sb.append(line);
             }
         } catch (IOException e) {
-            log.error("读取流失败:{}",e.toString());
             e.printStackTrace();
         }
 
         String body=sb.toString();
-        log.warn("body:{}",body);
 
         //将String数据转换成map
         Gson gson=new Gson();

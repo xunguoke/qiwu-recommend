@@ -39,7 +39,6 @@ public class ResultUtils {
 
         //将对象转换成json
         String s = JSON.toJSONString(radical);
-        log.warn("返回信息:{}",s);
         return s;
     }
 }

@@ -1,7 +1,8 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
+import ai.qiwu.com.cn.pojo.PayControl;
+import ai.qiwu.com.cn.pojo.SeriesPay;
 import ai.qiwu.com.cn.pojo.UserHistory;
-import ai.qiwu.com.cn.pojo.Watch;
 import ai.qiwu.com.cn.pojo.connectorPojo.PublicData;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.DataResponse;
 import ai.qiwu.com.cn.pojo.connectorPojo.ResponsePojo.ReturnedMessages;
@@ -287,7 +288,7 @@ public class FilterWorksUtils {
     }
 
     /**
-     * 所有作品，用户历史作品的交集作品（返回的作品信息已经按照时间排序）
+     * 所有作品，作品的交集作品（返回的作品信息已经按照时间排序）
      * @param workTime 用户玩过的作品时间集合（已经降序排序）
      * @param maps 所有作品接口中的作品
      * @param workTime
@@ -641,7 +642,6 @@ public class FilterWorksUtils {
                     interfaceWorks.add(work.getName());
                 }
             } catch (ParseException e) {
-                log.warn("时间转换失败");
                 e.printStackTrace();
             }
         }
@@ -915,4 +915,85 @@ public class FilterWorksUtils {
         return labelsList;
     }
 
+    /**
+     * 获取数据库已购买作品，已购系列作品的交集
+     * @param payControls 已购买作品
+     * @param seriesPays 已购系列作品
+     * @return
+     */
+    public static List<Map.Entry<String, Date>> purchasedIntersection(List<PayControl> payControls, List<SeriesPay> seriesPays) {
+        //用于接收已购买作品的作品名，购买时间以及已购买系列作品的作品名，购买时间
+        HashMap<String , Date> payMap = new HashMap<>();
+        //获取已购买作品名
+        for (PayControl payControl : payControls) {
+            payMap.put(payControl.getWorkname(),payControl.getGmtmodified());
+        }
+        //获取已购买系列作品名
+        for (SeriesPay seriesPay : seriesPays) {
+            payMap.put(seriesPay.getWorkname(),seriesPay.getGmtmodified());
+        }
+        //将集合按照时间降序排序
+        List<Map.Entry<String, Date>> list = new ArrayList<Map.Entry<String, Date>>(payMap.entrySet());
+        Collections.sort(list, new Comparator<Map.Entry<String, Date>>() {
+            @Override
+            public int compare(Map.Entry<String, Date> o1, Map.Entry<String, Date> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+        return list;
+    }
+
+    /**
+     * 根据用户id，渠道ID和指定时间段查询购买的作品
+     * @return
+     */
+    public static List<PayControl> purchaseTime(WatchService watchService, String uid, String channelId, String semantics) {
+        //获取开始时间
+        String startingTime;
+        //获取结束时间
+        String endTime;
+        //调用方法解析语义，获取时间
+        List<String> date = JudgmentIntention.getDate(semantics);
+        if(date.size()>1){
+            //获取开始时间
+            startingTime = date.get(0);
+            //获取结束时间
+            endTime = date.get(1);
+        }else{
+            //获取开始时间
+            startingTime = date.get(0);
+            //获取当前时间
+            endTime = DateUtil.currentTimes();
+        }
+        //数据库中查询
+        List<PayControl> payControl = watchService.findByUidOfTimeOfChannelId(uid,channelId,startingTime,endTime);
+        return payControl;
+    }
+
+    /**
+     * 根据用户id，渠道ID和指定时间段查询购买的系列作品
+     * @return
+     */
+    public static List<SeriesPay> purchaseSeriesTimePeriod(WatchService watchService, String uid, String channelId, String semantics) {
+        //获取开始时间
+        String startingTime;
+        //获取结束时间
+        String endTime;
+        //调用方法解析语义，获取时间
+        List<String> date = JudgmentIntention.getDate(semantics);
+        if(date.size()>1){
+            //获取开始时间
+            startingTime = date.get(0);
+            //获取结束时间
+            endTime = date.get(1);
+        }else{
+            //获取开始时间
+            startingTime = date.get(0);
+            //获取当前时间
+            endTime = DateUtil.currentTimes();
+        }
+        //数据库中查询
+        List<SeriesPay> seriesPay = watchService.seriesPayByUidOfTimeOfChannelId(uid,channelId,startingTime,endTime);
+        return seriesPay;
+    }
 }

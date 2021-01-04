@@ -90,7 +90,6 @@ public class WorkExtractionUtils {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-        log.warn("list:{}", list);
 
         //判断集合长度
         if (list.size() > list2.size()) {
@@ -228,13 +227,10 @@ public class WorkExtractionUtils {
         for (WorksPojo work : works) {
             //获取游戏名
             String gameName = work.getName();
-            log.warn("gameName:{}", gameName);
             //获取游戏分数
             Double fraction = work.getScore();
-            log.warn("fraction:{}", fraction);
             //获取游戏编号
             String botAccount = work.getBotAccount();
-            log.warn("botAccount:{}", botAccount);
             //存入游戏编号集合
             gameNumber.put(gameName, botAccount);
             //存入游戏评分集合
@@ -495,7 +491,6 @@ public class WorkExtractionUtils {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-        log.warn("list:{}",list);
         //循环获取作者名
         for(int i=0;i<3;i++){
             if(i==list.size()){
@@ -546,10 +541,8 @@ public class WorkExtractionUtils {
             int plotCount = work.getPlotCount();
             //获取游戏名
             String gameName = work.getName();
-            log.warn("gameName:{}", gameName);
             //获取游戏编号
             String botAccount = work.getBotAccount();
-            log.warn("botAccount:{}", botAccount);
             //存入游戏编号集合
             gameNumber.put(gameName, botAccount);
             //存入游戏人数集合
@@ -566,7 +559,6 @@ public class WorkExtractionUtils {
                 return o2.getValue().compareTo(o1.getValue());
             }
         });
-        log.warn("list:{}", list);
         //循环遍历集合，提取游戏名游戏编号
         for (int i = 0; i < list.size(); i++) {
             //判断是否最后
@@ -698,17 +690,13 @@ public class WorkExtractionUtils {
         for (String s : seriesName) {
             typeList.add(s);
         }
-        log.warn("aaaaa:{}",typeList);
         seriesName.removeAll(range);
-        log.warn("ssss:{}",seriesName);
         //判断取差集后的labels长度
         if(seriesName.size()<=3){
             for (String s : seriesName) {
                 titleList.add(s);
             }
-            log.warn("bbbbb:{}",titleList);
             typeList.removeAll(seriesName);
-            log.warn("ccxcc:{}",typeList);
             for (int j=0;j<(3-seriesName.size());j++){
                 titleList.add(typeList.get(j));
             }
