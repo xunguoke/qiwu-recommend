@@ -10,8 +10,6 @@ import java.util.List;
  * 中转使用
  * @author hjd
  */
-@Getter
-@Setter
 public class PublicData {
     private List<String> labels;
     private List<PublicWorks> works;

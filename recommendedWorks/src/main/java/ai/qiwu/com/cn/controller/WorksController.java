@@ -41,6 +41,7 @@ public class WorksController {
         long startTime=System.currentTimeMillis();
         String recommendations = recommendaService.getRecommendations(request, watchService, redisTemplate);
         long endTime=System.currentTimeMillis();
+        System.out.println(endTime-startTime);
         return recommendations;
     }
 }

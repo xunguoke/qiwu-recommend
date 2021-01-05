@@ -25,26 +25,26 @@
     <!--根据用户ID渠道id查询易购买作品表中的数据-->
     <select id="findByUidAndChannelId" resultType="ai.qiwu.com.cn.pojo.PayControl">
         SELECT * FROM pay_control_point_record_tb
-        WHERE user_id = #{uid} AND channel_id=#{channelid}
+        WHERE uid = #{uid} AND channel_id=#{channelId}
     </select>
 
     <!--查询有购买系列作品表中的数据-->
     <select id="seriesByUidAndChannelId" resultType="ai.qiwu.com.cn.pojo.SeriesPay">
         SELECT * FROM series_pay_record_tb
-        WHERE user_id = #{uid} AND channel_id=#{channelid}
+        WHERE uid = #{uid} AND channel_id=#{channelId}
     </select>
 
-    <!--根据用户ID渠道id查询和时间段购买作品表中的数据-->
-    <select id="findByUidOfTimeOfChannelId" resultType="ai.qiwu.com.cn.pojo.PayControl">
-        SELECT * FROM pay_control_point_record_tb
-        WHERE user_id = #{uid} AND channel_id=#{channelid} AND  gmt_modified >= #{startingTime} AND gmt_modified &lt;= #{endTime}
-    </select>
 
     <!--根据用户ID渠道id查询和时间段购买系列作品表中的数据-->
     <select id="seriesPayByUidOfTimeOfChannelId" resultType="ai.qiwu.com.cn.pojo.SeriesPay">
         SELECT * FROM series_pay_record_tb
-        WHERE user_id = #{uid} AND channel_id=#{channelid} AND  gmt_modified >= #{startingTime} AND gmt_modified &lt;= #{endTime}
+        WHERE uid = #{uid} AND channel_id=#{channelId} AND  gmt_create >= #{startingTime} AND gmt_modified &lt;= #{endTime}
     </select>
 
+    <!--根据用户ID渠道id查询和时间段购买作品表中的数据-->
+    <select id="findByUidOfTimeOfChannelId" resultType="ai.qiwu.com.cn.pojo.PayControl">
+        SELECT * FROM app_user_history_tb
+        WHERE user_id = #{uid} AND channel_id=#{channelId} AND  gmt_modified >= #{startingTime} AND gmt_modified &lt;= #{endTime}
+    </select>
 
 </mapper>

@@ -26,8 +26,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @Slf4j
 public class IntentionTool {
-    @Autowired
-    RedisTemplate redisTemplate;
 
     /**
      * 手表推荐之历史记录类型查询
@@ -40,7 +38,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //查询用户历史表中的作品
@@ -107,7 +106,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -314,7 +314,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -359,7 +360,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -407,7 +409,8 @@ public class IntentionTool {
         //获取语义
         String semantics = intent.getWorks();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //获取所有满足意图的作品
@@ -440,7 +443,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -477,7 +481,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -550,7 +555,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -655,7 +661,8 @@ public class IntentionTool {
             //获取语义
             String channelId = intent.getChannelId();
             //获取用户id
-            String uid = intent.getUid();
+            //String uid = intent.getUid();
+            String uid="119";
 
             //先查询我上周玩了那些游戏
             //请求推荐作品接口，返回所有作品
@@ -735,7 +742,8 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            String uid = intent.getUid();
+            //String uid = intent.getUid();
+            String uid="119";
             //根据作者筛选作品
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
@@ -813,7 +821,8 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            String uid = intent.getUid();
+            //String uid = intent.getUid();
+            String uid="119";
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
             DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(maps.get("data")), DataResponse.class);
@@ -853,7 +862,8 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            String uid = intent.getUid();
+            //String uid = intent.getUid();
+            String uid="119";
             DataResponse data = new DataResponse();
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
@@ -906,7 +916,7 @@ public class IntentionTool {
                 //获取所有作品
                 List<WorksPojo> worksPoJos = dataResponses.getWorks();
                 //判断作品列表是否为空
-                if (worksPoJos == null) {
+                if (worksPoJos.size()<=0) {
                     String recommendText = semantics2 + "没有上线" + semantics1 + "类型的作品";
                     String recommendName = semantics2 + "没有上线" + semantics1 + "类型的作品";
                     return TypeRecommendation.packageResult(recommendName, recommendText);
@@ -934,7 +944,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //请求数据库获取已购买作品表数据
         List<PayControl> payControls = DatabaseUtils.purchaseWorks(watchService, uid, channelId);
         //查询数据库获取已购买系列作品表数据
@@ -976,7 +987,8 @@ public class IntentionTool {
         //获取语义
         String semantics = intent.getWorks();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //从接口中获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //请求数据库获取已购买作品表数据
@@ -991,7 +1003,7 @@ public class IntentionTool {
         DataResponse dataResponses = FilterWorksUtils.workResult(map, workTime);
         //筛选不含有禁用标签的作品
         List<WorksPojo> worksPojos = FilterWorksUtils.nonProhibitedWorks(dataResponses.getWorks(), semantics, strings);
-        if (worksPojos!=null){
+        if (worksPojos.size()>0){
             //将作品存到缓存中去
             CacheUtils.cacheSave(redisTemplate, worksPojos);
             //跟具作品时间进行排序返回作品列表和信息
@@ -1018,7 +1030,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        String uid = intent.getUid();
+        //String uid = intent.getUid();
+        String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求数据库获取已购买作品表数据
