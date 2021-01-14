@@ -21,6 +21,7 @@ public class ResolveUtil {
         String chatKey = (String) map.get("chatKey");
         Map vars = (Map) map.get("vars");
         String intention = (String) vars.get("手表推荐之推荐意图");
+        log.warn("手表推荐之推荐意图:{}",intention);
         //判断用户语句中是否有加号
         if(intention.contains("+")){
             //截取+号之前的数据

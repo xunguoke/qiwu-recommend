@@ -34,7 +34,6 @@
         WHERE uid = #{uid} AND channel_id=#{channelId}
     </select>
 
-
     <!--根据用户ID渠道id查询和时间段购买系列作品表中的数据-->
     <select id="seriesPayByUidOfTimeOfChannelId" resultType="ai.qiwu.com.cn.pojo.SeriesPay">
         SELECT * FROM series_pay_record_tb

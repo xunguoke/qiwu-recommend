@@ -66,12 +66,12 @@ public class GetWorksUtils {
         //定义一个map集合用于存储json数据
         Map map = new HashMap<>();
         List<BotConfig> list = new ArrayList<>();
-        Gson gson=new Gson();
+
 
 
         //请求路径带上参数
         String url=RwConstant.UrlInterface.QI_WU_BOTCONFIG;
-
+        Gson gson=new Gson();
         //发送请求
         OkHttpClient client = new OkHttpClient();
         //MediaType.parse()解析出MediaType对象;

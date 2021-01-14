@@ -114,13 +114,13 @@ public class FilterWorksUtils {
 
     /**
      * 筛选指定作者的作品
-     * @param dataResponse 封装的作品信息
+     * @param works 封装的作品信息
      * @param semantics 用户意图
      * @return
      */
-    public static List<WorksPojo> authorWorks(DataResponse dataResponse, String semantics) {
+    public static List<WorksPojo> authorWorks(List<WorksPojo> works, String semantics) {
         List<WorksPojo> worksPojos=new ArrayList<>();
-        for (WorksPojo work : dataResponse.getWorks()) {
+        for (WorksPojo work : works) {
             if (work.getAuthorName().equals(semantics)){
                 worksPojos.add(work);
             }
@@ -362,6 +362,32 @@ public class FilterWorksUtils {
     public static List<WorksPojo> typeSelection(List<WorksPojo> works, String semantics) {
         //定义一个集合用于保存筛选后的作品
         List<WorksPojo> worksList=new ArrayList<>();
+        //判断作品类型是否是免费或者付费
+        if(semantics.equals("New")||semantics.equals("免费")){
+            //循环遍历所有作品
+            for (WorksPojo work : works) {
+                //获取作品类型列表
+                List<String> labels = work.getLabels();
+                //判断是否包含指定的类型
+                if(labels.contains("New")||labels.contains("免费")){
+                    //包含
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+        }else if(semantics.equals("VIP")||semantics.equals("付费")){
+            //循环遍历所有作品
+            for (WorksPojo work : works) {
+                //获取作品类型列表
+                List<String> labels = work.getLabels();
+                //判断是否包含指定的类型
+                if(labels.contains("VIP")||labels.contains("付费")){
+                    //包含
+                    worksList.add(work);
+                }
+            }
+            return worksList;
+        }
         //循环遍历所有作品
         for (WorksPojo work : works) {
             //获取作品类型列表
@@ -683,16 +709,16 @@ public class FilterWorksUtils {
         if(asList.size()<=0){
             return null;
         }else{
-            for (int i = 0; i < asList.size(); i++) {
+
                 for (WorksPojo work : works) {
                     //获取作品类型
                     List<String> labels = work.getLabels();
-                    if (labels.contains(asList.get(i))){
+                    if (labels.contains(asList.get(0))||labels.contains(asList.get(1))){
                         //包含
                         worksList.add(work);
                     }
                 }
-            }
+
             return worksList;
         }
     }

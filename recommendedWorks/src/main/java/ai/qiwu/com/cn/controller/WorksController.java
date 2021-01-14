@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 @Slf4j
 @RequestMapping("/recommenda")
 public class WorksController {
-
     private final HttpServletRequest request;
     private final WatchService watchService;
     private final RecommendService recommendaService;
@@ -32,6 +31,7 @@ public class WorksController {
         this.watchService=watchService;
         this.redisTemplate=redisTemplate;
     }
+
     /**
      * 推荐作品
      * @return
@@ -41,7 +41,7 @@ public class WorksController {
         long startTime=System.currentTimeMillis();
         String recommendations = recommendaService.getRecommendations(request, watchService, redisTemplate);
         long endTime=System.currentTimeMillis();
-        System.out.println(endTime-startTime);
+        System.out.println("程序运行时长："+(endTime-startTime));
         return recommendations;
     }
 }

@@ -38,8 +38,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //查询用户历史表中的作品
@@ -58,8 +58,8 @@ public class IntentionTool {
         if (strings != null) {
             List<String> list2 = new ArrayList<>(strings);
             if (list2.contains(semantics)) {
-                String recommendText = "您没有体验过" + semantics + "类型的作品";
-                String recommendName = "您没有体验过" + semantics + "类型的作品";
+                String recommendText = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
+                String recommendName = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
                 return TypeRecommendation.packageResult(recommendName, recommendText);
             } else {
                 if (works.size() > 0) {
@@ -72,8 +72,8 @@ public class IntentionTool {
                     //封装返回结果信息
                     return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
                 } else {
-                    String recommendText = "您没有体验过" + semantics + "类型的作品";
-                    String recommendName = "您没有体验过" + semantics + "类型的作品";
+                    String recommendText = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
+                    String recommendName = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
                     return TypeRecommendation.packageResult(recommendName, recommendText);
                 }
             }
@@ -88,8 +88,8 @@ public class IntentionTool {
                 //封装返回结果信息
                 return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
             } else {
-                String recommendText = "您没有体验过" + semantics + "类型的作品";
-                String recommendName = "您没有体验过" + semantics + "类型的作品";
+                String recommendText = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
+                String recommendName = "您最近没有体验过" + semantics + "类型的作品呦，试试对我说推荐"+semantics+"类型的作品给我吧";
                 return TypeRecommendation.packageResult(recommendName, recommendText);
             }
         }
@@ -106,8 +106,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -130,8 +130,8 @@ public class IntentionTool {
             //封装返回结果信息
             return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
         } else {
-            String recommendText = "您" + semantics + "没有体验过作品";
-            String recommendName = "您" + semantics + "没有体验过作品";
+            String recommendText = "您" + semantics + "没有体验过作品呦，试试对我说推荐作品给我吧";
+            String recommendName = "您" + semantics + "没有体验过作品呦，试试对我说推荐作品给我吧";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
     }
@@ -218,7 +218,8 @@ public class IntentionTool {
         //获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选不包含渠道禁用标签的作品
-        List<WorksPojo> worksPoJos = FilterWorksUtils.filterDisabled(works, strings);
+        //List<WorksPojo> worksPoJos = FilterWorksUtils.filterDisabled(works, strings);
+        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(works, semantics);
         //判断作品列表是否为空
         if (worksPoJos.size() <= 0) {
             String recommendText = "暂无" + semantics + "类型的作品";
@@ -295,8 +296,8 @@ public class IntentionTool {
             //封装返回结果信息
             return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
         } else {
-            String recommendText = "这个月没有上线新的作品";
-            String recommendName = "这个月没有上线新的作品";
+            String recommendText = semantics+"没有上线新的作品";
+            String recommendName = semantics+"没有上线新的作品";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
     }
@@ -314,14 +315,15 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //解析语义
         String[] split = semantics.split("[+]");
+        //log.warn("semantics:{}",semantics);
         //转list
         List<String> asList = Arrays.asList(split);
         //将map封装成作品对象
@@ -342,8 +344,8 @@ public class IntentionTool {
             //封装返回结果信息
             return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
         } else {
-            String recommendText = "暂无" + asList.get(0) + "或" + asList.get(1) + "类型的作品，要不试试其他类型吧";
-            String recommendName = "暂无" + asList.get(0) + "或" + asList.get(1) + "类型的作品，要不试试其他类型吧";
+            String recommendText = "暂无" + asList.get(0) + "" + asList.get(1) + "类型的作品，要不试试其他类型吧";
+            String recommendName = "暂无" + asList.get(0) + "" + asList.get(1) + "类型的作品，要不试试其他类型吧";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
 
@@ -360,8 +362,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -388,8 +390,8 @@ public class IntentionTool {
             //封装返回结果信息
             return TypeRecommendation.packageResult(workInformation, returnedMessages.getWorksList());
         } else {
-            String recommendText = "暂无" + asList.get(0) + "或" + asList.get(1) + "类型的作品，要不试试其他类型吧";
-            String recommendName = "暂无" + asList.get(0) + "或" + asList.get(1) + "类型的作品，要不试试其他类型吧";
+            String recommendText = "暂无" + asList.get(0) + "" + asList.get(1) + "类型的作品，要不试试其他类型吧";
+            String recommendName = "暂无" + asList.get(0) + "" + asList.get(1) + "类型的作品，要不试试其他类型吧";
             return TypeRecommendation.packageResult(recommendName, recommendText);
         }
     }
@@ -409,8 +411,8 @@ public class IntentionTool {
         //获取语义
         String semantics = intent.getWorks();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //获取所有满足意图的作品
@@ -443,8 +445,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -452,7 +454,7 @@ public class IntentionTool {
         //将map封装成作品对象
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(maps.get("data")), DataResponse.class);
         //获取指定作者的作品
-        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponse, semantics);
+        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponse.getWorks(), semantics);
         if (worksPoJos.size() > 0) {
             //将作品存到缓存中去
             CacheUtils.cacheSave(redisTemplate, worksPoJos);
@@ -481,8 +483,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求推荐作品接口，返回所有作品
@@ -555,10 +557,11 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
+        log.warn("semantics:{}",semantics);
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //将map封装成作品对象
@@ -661,8 +664,8 @@ public class IntentionTool {
             //获取语义
             String channelId = intent.getChannelId();
             //获取用户id
-            //String uid = intent.getUid();
-            String uid="119";
+            String uid = intent.getUid();
+            //String uid="119";
 
             //先查询我上周玩了那些游戏
             //请求推荐作品接口，返回所有作品
@@ -683,16 +686,16 @@ public class IntentionTool {
                 //判断禁用标签是否包含意图
                 if (list2.contains(semantics2)) {
                     //包含
-                    String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
-                    String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
+                    String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
+                    String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
                     return TypeRecommendation.packageResult(recommendName, recommendText);
                 } else {
                     //不包含，根据类型筛选出作品
                     List<WorksPojo> worksPoJos = FilterWorksUtils.typeSelection(works, semantics2);
                     //判断作品列表是否为空
                     if (worksPoJos.size() <= 0) {
-                        String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
-                        String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
+                        String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
+                        String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
                         return TypeRecommendation.packageResult(recommendName, recommendText);
                     } else {
                         //将作品存到缓存中去
@@ -710,8 +713,8 @@ public class IntentionTool {
                 List<WorksPojo> worksPoJos = FilterWorksUtils.typeSelection(works, semantics2);
                 //判断作品列表是否为空
                 if (worksPoJos.size() <= 0) {
-                    String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
-                    String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品";
+                    String recommendText = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
+                    String recommendName = "您" + semantics1 + "没有体验过" + semantics2 + "类型的作品呦，试试对我说推荐"+semantics2+"类型的作品吧";
                     return TypeRecommendation.packageResult(recommendName, recommendText);
                 } else {
                     //将作品存到缓存中去
@@ -742,8 +745,8 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            //String uid = intent.getUid();
-            String uid="119";
+            String uid = intent.getUid();
+            //String uid="119";
             //根据作者筛选作品
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
@@ -821,15 +824,15 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            //String uid = intent.getUid();
-            String uid="119";
+            String uid = intent.getUid();
+            //String uid="119";
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
             DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(maps.get("data")), DataResponse.class);
             //获取指定时间范围的作品
             DataResponse dataResponses = FilterWorksUtils.latestTime(dataResponse, semantics1);
             //获取指定作者的作品
-            List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponses, semantics2);
+            List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponses.getWorks(), semantics2);
             //判断作品列表是否为空
             if (worksPoJos == null||worksPoJos.size()<=0) {
                 String recommendText = semantics2 + semantics1 + "没有上线新的作品";
@@ -862,8 +865,8 @@ public class IntentionTool {
             //获取渠道id
             String channelId = intent.getChannelId();
             //获取用户id
-            //String uid = intent.getUid();
-            String uid="119";
+            String uid = intent.getUid();
+            //String uid="119";
             DataResponse data = new DataResponse();
             //请求推荐作品接口，返回所有作品
             Map maps = GetWorksUtils.getInterfaceWorks(channelId);
@@ -944,8 +947,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //请求数据库获取已购买作品表数据
         List<PayControl> payControls = DatabaseUtils.purchaseWorks(watchService, uid, channelId);
         //查询数据库获取已购买系列作品表数据
@@ -987,8 +990,8 @@ public class IntentionTool {
         //获取语义
         String semantics = intent.getWorks();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //从接口中获取禁用标签
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //请求数据库获取已购买作品表数据
@@ -1030,8 +1033,8 @@ public class IntentionTool {
         //获取渠道ID
         String channelId = intent.getChannelId();
         //获取用户id
-        //String uid = intent.getUid();
-        String uid="119";
+        String uid = intent.getUid();
+        //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
         //请求数据库获取已购买作品表数据

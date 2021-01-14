@@ -36,6 +36,7 @@ public class IntentionUtils {
         String channelId = intent.getChannelId();
         //请求推荐作品接口，返回所有作品
         Map map = GetWorksUtils.getInterfaceWorks(channelId);
+        //System.out.println("请求推荐作品接口，返回所有作品时间："+(endTime-startTime));
         //将map封装成作品对象
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         //判断是否有作品
@@ -74,7 +75,7 @@ public class IntentionUtils {
         List<String> strings = GetWorksUtils.disableLabel(channelId);
         //筛选不含有禁用标签的作品
         List<WorksPojo> worksPojos = FilterWorksUtils.nonProhibitedWorks(dataResponse.getWorks(), semantics, strings);
-        if (worksPojos!=null){
+        if (worksPojos.size()>0){
             //将作品存到缓存中去
             CacheUtils.cacheSave(redisTemplate, worksPojos);
             //将作品按照分数排序,返回信息
@@ -166,7 +167,7 @@ public class IntentionUtils {
         //将map封装成作品对象
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
         //筛选指定作者的作品
-        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponse, semantics);
+        List<WorksPojo> worksPoJos = FilterWorksUtils.authorWorks(dataResponse.getWorks(), semantics);
         if (worksPoJos.size()>0){
             //将作品存到缓存中去
             CacheUtils.cacheSave(redisTemplate, worksPoJos);
