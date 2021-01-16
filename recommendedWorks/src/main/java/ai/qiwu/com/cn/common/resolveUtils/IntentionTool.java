@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 手表推荐未做部分
@@ -366,12 +367,14 @@ public class IntentionTool {
         //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
+        log.warn("semantics:{}",semantics);
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //解析语义
         String[] split = semantics.split("[+]");
-        //转list
-        List<String> asList = Arrays.asList(split);
+        //转list且去重
+        List<String> asList = Arrays.asList(split).stream().distinct().collect(Collectors.toList());
+        log.warn("asList:{}",asList);
         //将map封装成作品对象
         DataResponse dataResponses = JSONObject.parseObject(JSONObject.toJSONString(maps.get("data")), DataResponse.class);
         //获取交集作品
@@ -561,7 +564,7 @@ public class IntentionTool {
         //String uid="119";
         //获取语义
         String semantics = intent.getWorks();
-        log.warn("semantics:{}",semantics);
+        //log.warn("semantics:{}",semantics);
         //请求推荐作品接口，返回所有作品
         Map maps = GetWorksUtils.getInterfaceWorks(channelId);
         //将map封装成作品对象

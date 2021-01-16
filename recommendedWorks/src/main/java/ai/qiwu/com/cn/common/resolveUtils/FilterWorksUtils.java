@@ -1022,4 +1022,6 @@ public class FilterWorksUtils {
         List<SeriesPay> seriesPay = watchService.seriesPayByUidOfTimeOfChannelId(uid,channelId,startingTime,endTime);
         return seriesPay;
     }
+
+
 }
