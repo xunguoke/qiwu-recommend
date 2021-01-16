@@ -5,6 +5,7 @@ import ai.qiwu.com.cn.service.handleService.WatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,13 +24,15 @@ public class WorksController {
     private final WatchService watchService;
     private final RecommendService recommendaService;
     private final RedisTemplate redisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @Autowired(required = false)
-    public WorksController(RedisTemplate redisTemplate,WatchService watchService, RecommendService recommendaService, HttpServletRequest request) {
+    public WorksController(StringRedisTemplate stringRedisTemplate,RedisTemplate redisTemplate,WatchService watchService, RecommendService recommendaService, HttpServletRequest request) {
         this.request=request;
         this.recommendaService=recommendaService;
         this.watchService=watchService;
         this.redisTemplate=redisTemplate;
+        this.stringRedisTemplate=stringRedisTemplate;
     }
 
     /**
@@ -39,7 +42,7 @@ public class WorksController {
     @PostMapping("/watch")
     public String works(){
         long startTime=System.currentTimeMillis();
-        String recommendations = recommendaService.getRecommendations(request, watchService, redisTemplate);
+        String recommendations = recommendaService.getRecommendations(request, watchService, redisTemplate,stringRedisTemplate);
         long endTime=System.currentTimeMillis();
         System.out.println("程序运行时长："+(endTime-startTime));
         return recommendations;

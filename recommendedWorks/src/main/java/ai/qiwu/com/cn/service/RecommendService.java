@@ -3,6 +3,7 @@ import ai.qiwu.com.cn.common.resolveUtils.JudgmentIntention;
 import ai.qiwu.com.cn.service.handleService.WatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,10 +22,10 @@ public class RecommendService {
      * @param redisTemplate
      * @return
      */
-    public String getRecommendations(HttpServletRequest request, WatchService watchService, RedisTemplate redisTemplate) {
+    public String getRecommendations(HttpServletRequest request, WatchService watchService, RedisTemplate redisTemplate, StringRedisTemplate stringRedisTemplate) {
 
         //调用方法返回结果信息
-        String works = JudgmentIntention.judgmentIntention(request,watchService,redisTemplate);
+        String works = JudgmentIntention.judgmentIntention(request,watchService,redisTemplate,stringRedisTemplate);
 
         return works;
 

@@ -39,8 +39,9 @@ public class IntentionUtils {
         //System.out.println("请求推荐作品接口，返回所有作品时间："+(endTime-startTime));
         //将map封装成作品对象
         DataResponse dataResponse = JSONObject.parseObject(JSONObject.toJSONString(map.get("data")), DataResponse.class);
+        List<WorksPojo> works = dataResponse.getWorks();
         //判断是否有作品
-        if(dataResponse.getWorks().size()<=0){
+        if(works.size()<=0){
             String workInformation = "暂无作品";
             String listOfWorks = "暂无作品";
             //将结果信息封装后返回

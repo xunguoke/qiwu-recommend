@@ -4,6 +4,7 @@ import ai.qiwu.com.cn.pojo.connectorPojo.IntentionRequest;
 import ai.qiwu.com.cn.service.handleService.WatchService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,12 +21,13 @@ public class JudgmentIntention {
      * 判断用户意图
      * @return
      */
-    public static String judgmentIntention(HttpServletRequest request, WatchService watchService, RedisTemplate redisTemplate) {
+    public static String judgmentIntention(HttpServletRequest request, WatchService watchService, RedisTemplate redisTemplate, StringRedisTemplate stringRedisTemplate) {
         //1.获取请求数据,提取用户需求信息
         IntentionRequest intent = ResolveUtil.parsingRequest(request);
         String intention = intent.getIntention();
         //判断用户具体信息
         if(intention.equals("手表推荐之推荐")){
+            System.out.println("=========="+DateUtil.testHash(stringRedisTemplate));
             return IntentionUtils.recommenda(intent, watchService,redisTemplate);
         }else if(intention.equals("手表推荐之类型推荐")){
             return IntentionUtils.typeRecommendation(intent, watchService,redisTemplate);

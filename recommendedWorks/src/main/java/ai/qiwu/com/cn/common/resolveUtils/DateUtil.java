@@ -1,5 +1,9 @@
 package ai.qiwu.com.cn.common.resolveUtils;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -16,6 +20,15 @@ import java.util.List;
  * @author hjd
  */
 public class DateUtil {
+    @Autowired(required = false)
+    private static RedisTemplate redisTemplate;
+
+    public static Object testHash(StringRedisTemplate stringRedisTemplate){
+        stringRedisTemplate.opsForHash().put("maps","mapskey","mapvaluee");
+        Object o = stringRedisTemplate.opsForHash().get("maps", "mapskey");
+        System.out.println(o);
+        return o;
+    }
     /**
      * 获取当前时间
      * @return
